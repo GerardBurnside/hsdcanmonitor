@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2009 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/scan"
+          android:icon="@android:drawable/ic_menu_search"
+          android:title="@string/connect" />
+
+	<item android:id="@+id/settings" android:icon="@android:drawable/ic_menu_manage" android:title="Car Settings">
+		<menu>
+			<group android:menuCategory="container" android:id="@+id/seatbelt_beep" android:visible="true" android:enabled="true">
+				<item android:menuCategory="secondary" android:title="@string/restore_default_seatbelt_beep_settings" android:id="@+id/seatbelt_beep_restore_default"></item>
+				<item android:menuCategory="secondary" android:title="@string/seatbelt_driver_only" android:id="@+id/seatbelt_beep_driver_only"></item>
+				<item android:menuCategory="secondary" android:title="@string/seatbelt_remove_all" android:id="@+id/seatbelt_beep_remove_all"></item>
+			</group>
+			<group android:visible="true" android:enabled="true" android:id="@+id/reverse_beeps" android:menuCategory="container">
+				<item android:menuCategory="secondary" android:title="@string/restore_default_reverse_beep_settings" android:id="@+id/reverse_beep_restore"></item>
+				<item android:menuCategory="secondary" android:id="@+id/reverse_beep_remove" android:title="@string/reverse_single_beep"></item>
+			</group>
+		</menu>
+	</item>
+	<item android:title="@string/monitoring_on" android:id="@+id/monitoring_on_off" android:icon="@android:drawable/ic_menu_rotate"></item>
+	<item android:title="Exit" android:id="@+id/exit" android:icon="@android:drawable/ic_delete"></item>
+</menu>

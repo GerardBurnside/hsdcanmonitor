@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <string name="app_name">BT HSD Monitor</string>
+    <string name="send">Send</string>
+    <string name="not_connected">You are not connected to a device</string>
+    <string name="bt_not_enabled_leaving">Bluetooth not enabled. Leaving BT HSD Can Monitor.</string>
+    <string name="sd_card_not_mounted">Unable to write to SD card!</string>
+    <string name="title_connecting">connecting...</string>
+    <string name="title_connect_failed">connection with device failed!</string>
+    <string name="title_connection_lost">connection lost!</string>
+    <string name="title_connected_to">connected to: </string>
+    <string name="title_not_connected">not connected</string>
+    <string name="msg_init_done">Initialization done.</string>
+    <string name="msg_init_failure">Problem during initialization!</string>
+
+    <!--  DeviceListActivity -->
+    <string name="scanning">scanning for devices...</string>
+    <string name="select_device">select a device to connect</string>
+    <string name="none_paired">No devices have been paired</string>
+    <string name="none_found">No devices found</string>
+    <string name="title_paired_devices">Paired Devices</string>
+    <string name="title_other_devices">Other Available Devices</string>
+    <string name="button_scan">Scan for devices</string>
+
+    <!-- Options Menu -->
+    <string name="connect">Connect</string>
+    <string name="seatbelt_remove_all">Remove all seatbelt beeps</string>
+    <string name="seatbelt_driver_only">Remove passenger beep</string>
+    <string name="restore_default_seatbelt_beep_settings">Default Seatbelt Beep Settings</string>
+    <string name="reverse_single_beep">Single Reverse Beep</string>
+    <string name="restore_default_reverse_beep_settings">Default Reverse Beep Settings</string>
+    <string name="monitoring_on">Start Live Monitor</string>
+    <string name="monitoring_off">Stop Live Monitor</string>
+
+</resources>
