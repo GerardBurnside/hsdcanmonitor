@@ -225,10 +225,11 @@ public final class CoreEngine {
 						        if (D) Log.d(TAG, "Waiting for response of cmd: " + cmdStr);
 								cmd.wait();
 							}
-							// If we're here, it means we've been woken up by the reception of the response:
+							// If we're here, it means we've been woken up by
+							// the reception of the response:
 							// (or that we had received the reponse before waiting!)
-							// Let's notify the UI:
 					        if (D) Log.d(TAG, "Response of cmd (" + cmdStr + ") received: " + cmd.getResponseString());
+							// Let's notify the UI:
 					    	Message msg = _parentHandler.obtainMessage(MESSAGE_COMMAND_RESPONSE);
 					        Bundle bundle = new Bundle();
 					        bundle.putLong(DURATION, cmd.getDuration());
@@ -297,11 +298,11 @@ public final class CoreEngine {
             	ResponseHandler.getInstance().startLoggingCommands();
         	}
             return true;
-        case R.id.exit:
-        	stopAllThreads();
-        	Message msg = _parentHandler.obtainMessage(MESSAGE_FINISH);
-        	_parentHandler.sendMessage(msg);       	
-            return true;
+	    case R.id.exit:
+	    	stopAllThreads();
+	    	Message msg = _parentHandler.obtainMessage(MESSAGE_FINISH);
+	    	_parentHandler.sendMessage(msg);
+	        return true;
         }
         return false;
 	}

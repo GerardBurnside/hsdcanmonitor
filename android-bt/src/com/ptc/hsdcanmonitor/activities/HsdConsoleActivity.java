@@ -16,6 +16,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.view.WindowManager;
 import android.view.View.OnClickListener;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
@@ -45,6 +46,8 @@ public class HsdConsoleActivity extends Activity {
 
         // Set up the window layout
         requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, 
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON );
         setContentView(R.layout.main_console);
         getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.custom_title);
 
@@ -120,8 +123,8 @@ public class HsdConsoleActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-    	 return CoreEngine.getInstance().onOptionsItemSelected(item);
-    }
+    	return CoreEngine.getInstance().onOptionsItemSelected(item);
+   }
 
     // The Handler that gets information back from the underlying services
     private final Handler mHandler = new Handler() {
