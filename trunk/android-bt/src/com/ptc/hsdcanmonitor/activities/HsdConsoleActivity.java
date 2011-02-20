@@ -1,9 +1,7 @@
 package com.ptc.hsdcanmonitor.activities;
 
 import com.ptc.android.hsdcanmonitor.R;
-import com.ptc.hsdcanmonitor.CommandScheduler;
 import com.ptc.hsdcanmonitor.CoreEngine;
-import com.ptc.hsdcanmonitor.ResponseHandler;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -31,9 +29,6 @@ public class HsdConsoleActivity extends Activity {
     // Debugging
     private static final String TAG = "HsdCanMonitor";
     private static final boolean D = true;
-    // Intent request codes 
-    public static final int REQUEST_CONNECT_DEVICE = 1;
-    public static final int REQUEST_ENABLE_BT = 2;
     // Layout Views
     private TextView mTitle;
     private ListView mConversationView;
@@ -50,7 +45,7 @@ public class HsdConsoleActivity extends Activity {
 
         // Set up the window layout
         requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
-        setContentView(R.layout.main);
+        setContentView(R.layout.main_console);
         getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.custom_title);
 
         // Set up the custom title
@@ -125,57 +120,7 @@ public class HsdConsoleActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-        case R.id.scan:
-            // Launch the DeviceListActivity to see devices and do scan
-        	CoreEngine.getInstance().scanDevices();
-            return true;
-        case R.id.reverse_beep_remove:
-        	CoreEngine.getInstance().sendManualCommand("07c0 3bac40");
-        	// TODO: check the response !
-            return true;
-        case R.id.reverse_beep_restore:
-        	CoreEngine.getInstance().sendManualCommand("07c0 3bac00"); // Test non concluant pour remettre les bips!
-        	// Test auto headlight off: ça marche pas :-(
-           	//sendMessage("07 50 40 3B 15 00 00 00 00");
-        	// TODO: check the response !
-            return true;
-
-        case R.id.seatbelt_beep_restore_default:
-        	CoreEngine.getInstance().sendManualCommand("07c0 3ba7c0");
-        	// TODO: check the response !
-            return true;
-        case R.id.seatbelt_beep_driver_only:
-        	CoreEngine.getInstance().sendManualCommand("07c0 3ba740");
-        	// TODO: check the response !
-            return true;
-        case R.id.seatbelt_beep_remove_all:
-        	CoreEngine.getInstance().sendManualCommand("07c0 3ba700");
-        	// TODO: check the response !
-            return true;
-        case R.id.monitoring_on_off:
-        	// Start or stop monitoring by sending continuously many commands in a loop:
-        	if (CommandScheduler.getInstance().isBackgroundMonitoring()) {
-        		// Change the label of the menu:
-        		item.setTitle(R.string.monitoring_on);
-        		CommandScheduler.getInstance().stopBackgroundCommands();
-        	}
-        	else {
-        		// Change the label of the menu:
-        		item.setTitle(R.string.monitoring_off);
-            	CommandScheduler.getInstance().startBackgroundCommands();
-            	// Let's write into a file when manually started:
-            	// (as opposed to started automatically at startup)
-            	ResponseHandler.getInstance().startLoggingCommands();
-        	}
-            return true;
-        case R.id.exit:
-        	CoreEngine.getInstance().stopAllThreads();
-        	finish();
-        	// TODO: check the response !
-            return true;
-        }
-        return false;
+    	 return CoreEngine.getInstance().onOptionsItemSelected(item);
     }
 
     // The Handler that gets information back from the underlying services
@@ -217,11 +162,11 @@ public class HsdConsoleActivity extends Activity {
                 break;
             case CoreEngine.MESSAGE_REQUEST_BT:
                 Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+                startActivityForResult(enableIntent, CoreEngine.REQUEST_ENABLE_BT);
                 break;
             case CoreEngine.MESSAGE_SCAN_DEVICES:
                 Intent serverIntent = new Intent(getApplicationContext(), DeviceListActivity.class);
-                startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
+                startActivityForResult(serverIntent, CoreEngine.REQUEST_CONNECT_DEVICE);
                 break;
             case CoreEngine.MESSAGE_COMMAND_RESPONSE:
                 // We received a response to a manual command,
@@ -238,33 +183,8 @@ public class HsdConsoleActivity extends Activity {
     };
     
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(D) Log.d(TAG, "onActivityResult " + resultCode);
-        switch (requestCode) {
-        case REQUEST_CONNECT_DEVICE:
-            // When DeviceListActivity returns with a device to connect
-            if (resultCode == Activity.RESULT_OK) {
-                // Get the device MAC address
-                String address = data.getExtras()
-                                     .getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
-                // Get the BluetoothDevice object:
-                CoreEngine.getInstance().connectToDevice(address);
-            }
-            break;
-        case REQUEST_ENABLE_BT:
-            // When the request to enable Bluetooth returns
-            if (resultCode == Activity.RESULT_OK) {
-                // Bluetooth is now enabled:
-            	CoreEngine.getInstance().resumeInit();
-            } else {
-                // User did not enable Bluetooth or an error occured
-                Log.d(TAG, "BT not enabled");
-                Toast.makeText(this, R.string.bt_not_enabled_leaving, Toast.LENGTH_SHORT).show();
-                finish();
-            }
-        }
+    	CoreEngine.getInstance().onActivityResult(requestCode, resultCode, data);
     }
-
-
     
     @Override
     protected synchronized void onPause() {
@@ -281,8 +201,8 @@ public class HsdConsoleActivity extends Activity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        // Stop the services TODO
-        //CoreEngine.getInstance().stop();
+        // Stop everything:
+        CoreEngine.getInstance().stopAllThreads();
         if(D) Log.e(TAG, "--- ON DESTROY ---");
     }
 

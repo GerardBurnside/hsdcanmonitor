@@ -1,14 +1,18 @@
 package com.ptc.hsdcanmonitor;
 
 import com.ptc.android.hsdcanmonitor.R;
+import com.ptc.hsdcanmonitor.activities.DeviceListActivity;
 import com.ptc.hsdcanmonitor.commands.CommandResponseObject;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.MenuItem;
 
 
 /**
@@ -21,6 +25,9 @@ public final class CoreEngine {
     // Debugging
     private static final String TAG = "HsdCanMonitor";
     private static final boolean D = true;
+    // Intent request codes 
+    public static final int REQUEST_CONNECT_DEVICE = 1;
+    public static final int REQUEST_ENABLE_BT = 2;
     // Various states of the bluetooth connection:
     public static final int STATE_NONE = 0;
     public static final int STATE_CONNECTING = 1;
@@ -242,4 +249,89 @@ public final class CoreEngine {
 		_parentHandler = handler;
 	}
 
+	/**
+	 * Below are helper methods to share code between the activities
+	 */
+	public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+        case R.id.scan:
+            // Launch the DeviceListActivity to see devices and do scan
+        	scanDevices();
+            return true;
+        case R.id.reverse_beep_remove:
+        	sendManualCommand("07c0 3bac40");
+        	// TODO: check the response !
+            return true;
+        case R.id.reverse_beep_restore:
+        	sendManualCommand("07c0 3bac00"); // Test non concluant pour remettre les bips!
+        	// Test auto headlight off: ça marche pas :-(
+           	//sendMessage("07 50 40 3B 15 00 00 00 00");
+        	// TODO: check the response !
+            return true;
+
+        case R.id.seatbelt_beep_restore_default:
+        	sendManualCommand("07c0 3ba7c0");
+        	// TODO: check the response !
+            return true;
+        case R.id.seatbelt_beep_driver_only:
+        	sendManualCommand("07c0 3ba740");
+        	// TODO: check the response !
+            return true;
+        case R.id.seatbelt_beep_remove_all:
+        	sendManualCommand("07c0 3ba700");
+        	// TODO: check the response !
+            return true;
+        case R.id.monitoring_on_off:
+        	// Start or stop monitoring by sending continuously many commands in a loop:
+        	if (CommandScheduler.getInstance().isBackgroundMonitoring()) {
+        		// Change the label of the menu:
+        		item.setTitle(R.string.monitoring_on);
+        		CommandScheduler.getInstance().stopBackgroundCommands();
+        	}
+        	else {
+        		// Change the label of the menu:
+        		item.setTitle(R.string.monitoring_off);
+            	CommandScheduler.getInstance().startBackgroundCommands();
+            	// Let's write into a file when manually started:
+            	// (as opposed to started automatically at startup)
+            	ResponseHandler.getInstance().startLoggingCommands();
+        	}
+            return true;
+        case R.id.exit:
+        	stopAllThreads();
+        	Message msg = _parentHandler.obtainMessage(MESSAGE_FINISH);
+        	_parentHandler.sendMessage(msg);       	
+            return true;
+        }
+        return false;
+	}
+
+	public void onActivityResult(int requestCode, int resultCode,
+			Intent data) {
+        if(D) Log.d(TAG, "onActivityResult " + resultCode);
+        switch (requestCode) {
+        case REQUEST_CONNECT_DEVICE:
+            // When DeviceListActivity returns with a device to connect
+            if (resultCode == Activity.RESULT_OK) {
+                // Get the device MAC address
+                String address = data.getExtras()
+                                     .getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
+                // Get the BluetoothDevice object:
+                connectToDevice(address);
+            }
+            break;
+        case REQUEST_ENABLE_BT:
+            // When the request to enable Bluetooth returns
+            if (resultCode == Activity.RESULT_OK) {
+                // Bluetooth is now enabled:
+            	resumeInit();
+            } else {
+                // User did not enable Bluetooth or an error occured
+                Log.d(TAG, "BT not enabled");
+                askForToastMessage(R.string.bt_not_enabled_leaving);
+            	Message msg = _parentHandler.obtainMessage(MESSAGE_FINISH);
+            	_parentHandler.sendMessage(msg);       	
+            }
+        }
+	}
 }
