@@ -98,4 +98,13 @@ public class CommandResponseObject {
 		return _timedOut;
 	}
 
+	/**
+	 * Use this method when re-using a command that has already been sent.
+	 */
+	public void reset() {
+		_response = null;
+		_duration = 0;
+		_notifyMe = null;
+		_timedOut = false;
+	}
 }

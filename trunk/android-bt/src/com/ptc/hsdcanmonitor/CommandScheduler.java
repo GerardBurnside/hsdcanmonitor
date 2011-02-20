@@ -130,7 +130,7 @@ public class CommandScheduler implements Runnable {
 						while (_cyclesNumber % bkgCmd.periodicity != 0);
 						// TODO: we should check that the previous command was "AT SH xxx" if needed!
 						// i.e. if we inserted a manual command in between!
-						
+						bkgCmd.reset();
 					}
 					// Let's feed this command to the CanInterface:
 					feedInterface(bkgCmd);
