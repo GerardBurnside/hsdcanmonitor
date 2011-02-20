@@ -28,8 +28,8 @@ public class CommandResponseObject {
         return _command;
 	}
 	public byte[] getCommandToSend() {
-		// Add \r\n to all commands before sending:
-        return (_command + "\r\n").getBytes();
+		// Add \n\r to all commands before sending:
+        return (_command + "\n\r").getBytes();
 	}
 
 	public void setRawResponse(ArrayList<Byte> resp) {
