@@ -76,8 +76,8 @@ public class ResponseHandler implements Runnable {
     private static final String DATE_FORMAT_SECONDS = "yyyy-MM-dd_HHmmss";
     private Calendar mCalendar = Calendar.getInstance();
     private SimpleDateFormat mLogDateFormat = new SimpleDateFormat(DATE_FORMAT_SECONDS);
-    //private static final String DATE_FORMAT_MILLIS = "HH:mm:ss:SSS";
-    //private SimpleDateFormat mDateFormatMillis = new SimpleDateFormat(DATE_FORMAT_MILLIS);    
+    private static final String DATE_FORMAT_MILLIS = "HH:mm:ss:SSS";
+    private SimpleDateFormat mDateFormatMillis = new SimpleDateFormat(DATE_FORMAT_MILLIS);    
 
     private ResponseHandler() {
     	// Private for singleton implem.
@@ -173,7 +173,7 @@ public class ResponseHandler implements Runnable {
     }
     
     private void LogData(String msg) {
-    	String logMessage = /*mDateFormatMillis.format(System.currentTimeMillis())+" "+*/msg;
+    	String logMessage = mDateFormatMillis.format(System.currentTimeMillis())+" "+msg;
     	try {
 			_currentLogFile.write(logMessage.getBytes());
 		} catch (Throwable e) {
