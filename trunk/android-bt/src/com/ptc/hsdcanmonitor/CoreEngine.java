@@ -298,6 +298,12 @@ public final class CoreEngine {
             	ResponseHandler.getInstance().startLoggingCommands();
         	}
             return true;
+	    case R.id.app_settings:
+	    	// TODO: Log to file or not, etc.
+	        return true;
+	    case R.id.switch_view:
+	    	// TODO: Switch between console and graphics..
+	        return true;
 	    case R.id.exit:
 	    	stopAllThreads();
 	    	Message msg = _parentHandler.obtainMessage(MESSAGE_FINISH);

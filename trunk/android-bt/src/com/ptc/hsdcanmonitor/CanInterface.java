@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Random;
+import java.nio.CharBuffer;
+//import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -39,11 +39,11 @@ public class CanInterface implements Runnable {
     // Debugging
     private static final String TAG = "HsdCanMonitor";
     private static final boolean D = true;
-    // Is this specific value important?
+    // As suggested by Android's Javadoc, use this specific value:
 	protected static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	// The maximum amount of time that we are willing to wait for
 	// a single command response (in milliseconds):
-	public static final long MAX_COMMAND_RESPONSE_TIME = 400;
+	public static final long MAX_COMMAND_RESPONSE_TIME = 4000;
 	// The input of this thread is a 1-bounded blocking queue,
 	// i.e. we are waiting for each command, one at a time.
 	protected BlockingQueue<CommandResponseObject> _inputQueue;
@@ -52,7 +52,10 @@ public class CanInterface implements Runnable {
 	protected BlockingQueue<CommandResponseObject> _outputQueue;
 	protected volatile boolean _keepRunning = true;
 	// Temporary buffer to collect the whole response until '>' is received:
-	protected ArrayList<Byte> _buff = new ArrayList<Byte>();
+	//protected ArrayList<Byte> _buff = new ArrayList<Byte>();
+	protected CharBuffer _buff = CharBuffer.allocate(1024); // might be increased if needed.
+	protected char[] _result = new char[1024];
+
 	// Socket connection to the bluetooth device:
 	protected BluetoothSocket _sock = null;
 	// inbound stream from the bluetooth device:
@@ -66,10 +69,11 @@ public class CanInterface implements Runnable {
 	protected CommandResponseObject _currentRequest;
 	// Dropping the next background command because of failure of current one:
 	protected boolean _dropNextBackgroundCommand = false;
+
 	// Used to debug when no BT CAN interface is available for tests:
-	private boolean _fakeDebugResponses = false;// true;
+	private boolean _fakeDebugResponses = false;// true if no BT dongle available ;-)
 	// For random chance timeout when debugging:
-	private Random _myRand = new Random();
+	//private Random _myRand = new Random();
 
 
 	// Private constructor prevents instantiation from other classes:
@@ -102,7 +106,22 @@ public class CanInterface implements Runnable {
 	}
 	
 	public void stop() {
+		// Stop the CanInterface thread and reset the streams,
+		// so that a connectToDevice() and new Thread().start()
+		// are required to restart the commands processing.
+
+		// TODO? send a request for the device to go into sleep mode before closing the socket?
 		_keepRunning = false;
+		try {
+			if (_sock != null)
+				_sock.close();
+		} catch (Throwable e1) {
+			if (D) Log.e(TAG, "Error while trying to close BT socket!",e1);
+		}
+		_sock = null;
+		_in = null;
+		_out = null;
+		CoreEngine.getInstance().setState(CoreEngine.STATE_NONE);
 	}
 
 	/**
@@ -110,52 +129,54 @@ public class CanInterface implements Runnable {
 	 * returns true if success.
 	 */
 	private Callable<Boolean> _singleCommandExecution = new Callable<Boolean>() {
-		@SuppressWarnings("unchecked")
 		@Override
 		public Boolean call() {
 			try {
-				byte c = 0;
+				char c = 0; // I think we can ignore encoding issues - need to verify...
 				_buff.clear();
 				long before = System.currentTimeMillis();
 				////////////////// DEBUG ONLY ////////////////////
+				/*
 				if (_fakeDebugResponses) { // ONLY FOR EARLY DEBUGGING:
-					byte[] debug = "Fake response!>".getBytes();
+					String debug = //"Fake response!>"
+						"7E8 10 2E 61 01 00 00 00 00 \n\r7E8 21 14 65 50 61 53 00 00 \n\r7E8 22 00 00 00 00 2A 7B 2A \n\r7E8 23 FF 67 12 A7 25 37 29 \n\r7E8 24 3C 00 00 00 00 80 49 \n\r7E8 25 00 00 00 80 00 00 31 \n\r7E8 26 00 00 08 51 0A 00 00 \n\r\n\r >";
 					int indexDebug=0;
-					// timeout if random true three times in a row!
-					if (_myRand.nextBoolean() && _myRand.nextBoolean() && _myRand.nextBoolean()) {
-						_buff.add(debug[0]);_buff.add(debug[1]);
-						_buff.add(debug[2]);_buff.add(debug[3]);
-						_buff.add(debug[4]);
+					// timeout if random is true four times in a row!
+					if (_myRand.nextBoolean() && _myRand.nextBoolean()
+							&& _myRand.nextBoolean() && _myRand.nextBoolean()) {
+						_buff.put(debug.charAt(0)).put(debug.charAt(1));
+						_buff.put(debug.charAt(2)).put(debug.charAt(3));
+						_buff.put(debug.charAt(4));
 						try {
 							if (D) Log.d(TAG, "Simulating TimeOut, sleep(600)...");
 							Thread.sleep(600);
 						} catch (InterruptedException e) {
-							_buff.add(debug[5]);
+							_buff.put(debug.charAt(5));
 							if (D) Log.d(TAG, "Sleep(600) interrupted!");
 							return true;
 						}
-						_buff.add(debug[6]); // Should not happen ??
+						_buff.put(debug.charAt(6)); // Should not happen ??
 						if (D) Log.d(TAG, "After the sleep(600)!?!");
 					} // Not a timeout:
-					else while ((char)(c = debug[indexDebug++]) != '>') {
-						_buff.add(c);
+					else while ((c = debug.charAt(indexDebug++)) != '>') {
+						_buff.put(c);
 					}
 					if (D) Log.d(TAG, "After fake debug response.");
 				}
 				////////////// END DEBUG ONLY ////////////////////
-				else { // this is the actual running code when not debugging: 
+				else */ { // this is the actual running code when not debugging: 
 					// Start by sending the command:
 					_out.write(_currentRequest.getCommandToSend());
 					_out.flush();
 					// Then wait for the end of the response (i.e. the prompt char '>'):
-					while ((char)(c = (byte)_in.read()) != '>') {
-						_buff.add(c);
+					while ((c = (char)_in.read()) != '>') {
+						_buff.put(c);
 					}
 				}
 				// How long did it take to receive the full response:
 				_currentRequest.setDuration(System.currentTimeMillis() - before);
-				// Store the response:
-				_currentRequest.setRawResponse((ArrayList<Byte>)_buff.clone());
+				// Set the response:
+				setResponseData();
 			} catch (IOException e) {
 				// Is this a timeOut?
 				if (e instanceof InterruptedIOException)
@@ -165,6 +186,13 @@ public class CanInterface implements Runnable {
 			return true;
 		}
 	};
+	
+	protected void setResponseData() {
+		int len = _buff.position();
+		_buff.rewind();
+		_buff.get(_result, 0, len);
+		_currentRequest.setRawResponse(_result,len);
+	}
 	
 	/**
 	 * This method is what the Interface thread keeps doing,
@@ -181,7 +209,6 @@ public class CanInterface implements Runnable {
 		}
 	}
 	
-	@SuppressWarnings("unchecked")
 	private void handleCommand(CommandResponseObject request) {
 		try {
 			// Use a Callable in a separate thread so that we can wait at most MAX_COMMAND_RESPONSE_TIME:
@@ -200,13 +227,14 @@ public class CanInterface implements Runnable {
 			}
 			catch (TimeoutException toe) {
 				// Let's put what we received so far in the response and tag it as timed out:
-				_currentRequest.setRawResponse((ArrayList<Byte>)_buff.clone());
+				setResponseData();
 				_currentRequest.timedOut(true);
 				if (D) Log.d(TAG, "TimeOut: interrupting 'future' result...");
 				result.cancel(true); // Try to force interrupt.
 			}
 		} catch (Throwable e) {
-			handleError();
+			if (D) Log.e(TAG, "Error while reading response...",e);
+			//handleError();
 		}
 		// Finally, send the response to the ResponseHandler Thread:
 		_outputQueue.add(_currentRequest);
@@ -219,19 +247,8 @@ public class CanInterface implements Runnable {
 	}
 	
 	private void handleError() {
-		// Error handling:
-		// For now we stop the CanInterface thread and reset the streams,
-		// so that a connectToDevice() and new Thread().start()
-		// are required to restart the commands processing.
-		_keepRunning = false;
-		try {
-			_sock.close();
-		} catch (Throwable e1) {
-			// Ignore.
-		}
-		_in = null;
-		_out = null;
-		CoreEngine.getInstance().setState(CoreEngine.STATE_NONE);
+		// Error handling for now:
+		stop();
 		// Notify a possible sender that the command failed:
 		_currentRequest.timedOut(true); // Maybe a separate flag might be more appropriate..
 		_currentRequest.notifySender();

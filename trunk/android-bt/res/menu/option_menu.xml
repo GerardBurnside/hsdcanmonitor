@@ -18,7 +18,7 @@
           android:icon="@android:drawable/ic_menu_search"
           android:title="@string/connect" />
 
-	<item android:id="@+id/settings" android:icon="@android:drawable/ic_menu_manage" android:title="Car Settings">
+	<item android:id="@+id/car_settings" android:icon="@android:drawable/ic_menu_manage" android:title="Car Settings">
 		<menu>
 			<group android:menuCategory="container" android:id="@+id/seatbelt_beep" android:visible="true" android:enabled="true">
 				<item android:menuCategory="secondary" android:title="@string/restore_default_seatbelt_beep_settings" android:id="@+id/seatbelt_beep_restore_default"></item>
@@ -31,6 +31,9 @@
 			</group>
 		</menu>
 	</item>
+	<!-- ic_menu_save for logging to file or not -->
 	<item android:title="@string/monitoring_on" android:id="@+id/monitoring_on_off" android:icon="@android:drawable/ic_menu_rotate"></item>
+	<item android:title="Switch View" android:id="@+id/switch_view" android:icon="@android:drawable/ic_menu_gallery"></item>
+	<item android:title="Settings" android:id="@+id/app_settings" android:icon="@android:drawable/ic_menu_preferences"></item>
 	<item android:title="Exit" android:id="@+id/exit" android:icon="@android:drawable/ic_delete"></item>
 </menu>
