@@ -109,6 +109,7 @@ public class CommandScheduler implements Runnable {
 			if (++_cyclesNumber > MAX_CYCLES_NUMBER) {
 				_cyclesNumber = 1;
 			}
+			// Test DEBUG: Only one cycle: stopBackgroundCommands();
 		}
 		return _counter++; // returned value is not incremented on purpose!
 	}

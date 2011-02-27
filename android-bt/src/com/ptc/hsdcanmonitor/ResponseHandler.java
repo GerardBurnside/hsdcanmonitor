@@ -12,6 +12,7 @@ import java.util.concurrent.BlockingQueue;
 import com.ptc.android.hsdcanmonitor.R;
 import com.ptc.hsdcanmonitor.commands.BackgroundCommand;
 import com.ptc.hsdcanmonitor.commands.CommandResponseObject;
+import com.ptc.hsdcanmonitor.commands.GenericResponseDecoder;
 import com.ptc.hsdcanmonitor.commands.InitCommand;
 
 import android.os.Environment;
@@ -70,6 +71,8 @@ public class ResponseHandler implements Runnable {
 	protected volatile boolean _keepRunning = true;
     // Shall we log commands/responses or not:
 	protected volatile boolean _logBackgroundCommands = true;
+	// Reference to the handler that will actually interpret the response:
+	protected GenericResponseDecoder _decoder;
     // Base filename for logs to the SD card:
     private final File mLogFileDir = Environment.getExternalStoragePublicDirectory("PriusLog");
     private OutputStream _currentLogFile = null;
@@ -131,7 +134,8 @@ public class ResponseHandler implements Runnable {
 		// else: the sender has probably already been notified
 	}
     
-    private void decodeResponses(BackgroundCommand request) {
+    @SuppressWarnings("unchecked")
+	private void decodeResponses(BackgroundCommand request) {
     	if (request.hasTimedOut()) {
 	        if (D) Log.d(TAG, "Response of cmd (" + request.getCommand() + ") timed out!");
     		if (request.resetOnFailure) {
@@ -140,7 +144,30 @@ public class ResponseHandler implements Runnable {
     		}
     	}
     	else {
+    		if (request.getCommand().startsWith("AT"))
+    			return; // Not much to interpret there...
+    		// TODO: I might decide to integrate the "AT" command and the following ones
+    		// within a single class so they become an atomic command:
+    		// it will avoid having to deal with interruption from manual commands
+    		// and most importantly it shall make decoding easier !!!
+    		
     		// TODO Interpret the responses and store values in a ConcurrentHashMap for the UI to retrieve.
+    		
+    		if (_decoder == null) // return;
+    		{
+    			// TODO: this class should be loaded after the init phase,
+    			// once we have determined which HSD we're dealing with...
+    			// Until then, only 2010 HSD is supported:
+    			String decoderClassName = "com.ptc.hsdcanmonitor.commands.Decoder_2ZR_FXE";
+    			try {
+					Class decoder = ClassLoader.getSystemClassLoader().loadClass(decoderClassName);
+					_decoder = (GenericResponseDecoder) decoder.newInstance();
+				} catch (Throwable e) {
+					if (D) Log.e(TAG, "unable to load class: "+decoderClassName, e);
+				}
+    		}
+    		// else:
+    		_decoder.decodeResponse(request);
     	}
 	}
 
