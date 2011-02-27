@@ -86,22 +86,15 @@ public class CommandResponseObject {
 				// First, remove parasitic '\r':
 				String temp = getResponseString().replaceAll("\\r", ""); // TODO: Remove empty lines?
 				// Split the string around '\n' for possible multiframe:
-				boolean firstLine = true;
-				int offset = 1; // First byte (7E8, 7EA etc.) is ignored.
 				for (String line : temp.split("\n")) {
 					if (line.length() == 0)
 						continue;
 					//else:
 					// Each space-separated string is an hexadecimal value:
 					String[] hexaStr = line.split(" ");
-					if (firstLine) {
-						firstLine = false;
-						if ("10".equals(hexaStr[1])) {
-							++offset; // Let's ignore also the second byte.
-						}
-					}
 					// Convert each two-digit string into the corresponding byte:
-					for (int k=offset; k<hexaStr.length; k++) {
+					// (ignore the leading 7Ex xx at the beginning of each line)
+					for (int k=2; k<hexaStr.length; k++) {
 						//_formattedBytesResponse.put(Byte.parseByte(hexaStr[k], 16)); Throws NumberFormatException for values >127
 						_formattedBytesResponse.put((byte) ((Character.digit(hexaStr[k].charAt(0), 16) << 4)
 	                            + Character.digit(hexaStr[k].charAt(1), 16)));
