@@ -42,11 +42,13 @@ public final class CoreEngine {
     public static final int MESSAGE_DEVICE_NAME = 5;
     public static final int MESSAGE_TOAST = 6;
     public static final int MESSAGE_COMMAND_RESPONSE = 7;
+    public static final int MESSAGE_UI_UPDATE = 8;
     // Message keys:
     public static final String TOAST = "toast";
     public static final String DEVICE_NAME = "dev_name";
     public static final String RESPONSE = "response";
     public static final String DURATION = "duration";
+    public static final String UI_UPDATE_ITEM = "ui_update_item";
     // Local Bluetooth adapter
     private BluetoothAdapter _bluetoothAdapter = null;
     // Parent Activity:
@@ -190,6 +192,19 @@ public final class CoreEngine {
 	}
 	
 	/**
+	 * This method sends UI data updates to the parent UI.
+	 * 
+	 * @param resource_id the id of the string in values/strings.xml
+	 */
+	public void notifyUI(/*TODO*/) {
+    	Message msg = _parentHandler.obtainMessage(MESSAGE_UI_UPDATE);
+        Bundle bundle = new Bundle();
+        // TOdO.. bundle.putInt(TOAST, resource_id);
+        msg.setData(bundle);
+    	_parentHandler.sendMessage(msg);
+	}
+
+	/**
 	 * This method asks the parent UI to display a message.
 	 * 
 	 * @param resource_id the id of the string in values/strings.xml
@@ -224,16 +239,18 @@ public final class CoreEngine {
 							if (resultStr == null) {
 						        if (D) Log.d(TAG, "Waiting for response of cmd: " + cmdStr);
 								cmd.wait();
+								// Now this should no longer be null:
+								resultStr = cmd.getResponseString();
 							}
 							// If we're here, it means we've been woken up by
 							// the reception of the response:
 							// (or that we had received the reponse before waiting!)
-					        if (D) Log.d(TAG, "Response of cmd (" + cmdStr + ") received: " + cmd.getResponseString());
+					        if (D) Log.d(TAG, "Response of cmd (" + cmdStr + ") received: " + resultStr);
 							// Let's notify the UI:
 					    	Message msg = _parentHandler.obtainMessage(MESSAGE_COMMAND_RESPONSE);
 					        Bundle bundle = new Bundle();
 					        bundle.putLong(DURATION, cmd.getDuration());
-					        bundle.putString(RESPONSE, cmd.getResponseString());
+					        bundle.putString(RESPONSE, resultStr);
 					        msg.setData(bundle);
 					    	_parentHandler.sendMessage(msg);
 						} catch (InterruptedException e) {

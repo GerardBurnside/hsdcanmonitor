@@ -12,56 +12,12 @@ import java.util.concurrent.BlockingQueue;
 import com.ptc.android.hsdcanmonitor.R;
 import com.ptc.hsdcanmonitor.commands.BackgroundCommand;
 import com.ptc.hsdcanmonitor.commands.CommandResponseObject;
+import com.ptc.hsdcanmonitor.commands.Decoder_2ZR_FXE;
 import com.ptc.hsdcanmonitor.commands.GenericResponseDecoder;
 import com.ptc.hsdcanmonitor.commands.InitCommand;
 
 import android.os.Environment;
 import android.util.Log;
-/* TODO: Place values in a HashMap:
-SOC	State of Charge %	 
-HVL	Batt Voltage	 
-Amp	Batt Amp	 
-Batt_KW	Batt kW	 
-Dis_Max	Discharge Max (kW)	 
-Cha_Max	Charge Max (kW)	 
-Batt_ref_tmp	Batt resfresh Temp (°C)	 
-batt_TB1	Batt Tmp1	 
-batt_TB2	Batt Tmp2	 
-batt_TB3	Batt Tmp3	 
-HVH	HighVoltage	 
-Cnv_Temp	°C	 
-ICE_kW	 	 
-ICE_Temp	°C	 
-Ice_Rpm	 	 
-ICE_Torque	NM	 
-Cool_Temp	°C	 
-MG2_kW	 	 
-MG2_Temp	°C	 
-MG2_RPM	 	 
-MG2_Torque	NM	 
-Invt_Temp_MG2	°C	 
-MG1_kW	 	 
-MG1_Temp	°C	 
-MG1_RPM	 	 
-MG1_Torque	NM	 
-Invt_Temp_MG1	°C	 
-Inj_muL	 	 
-FF_mLS	FuelFlow mL/S	 
-FF_LH	FuelFlow (calc) L/H	 
-Cons_kM_L	 	 
-Cons_L_100	 	 
-CalcLoad	%	 
-VehLoad	%	 
-MAF	G/S	 
-MAP	kPa	 
-Air_Intake_Temp	°C	 
-Acc_Pedal	%	 
-Atm_Press	kPa	 
-Ext_Temp	°C	 
-Aux_Batt	V	 
-Speed	kM/H	 
-Distance	kM
- */
 
 public class ResponseHandler implements Runnable {
     // Debugging
@@ -134,7 +90,6 @@ public class ResponseHandler implements Runnable {
 		// else: the sender has probably already been notified
 	}
     
-    @SuppressWarnings("unchecked")
 	private void decodeResponses(BackgroundCommand request) {
     	if (request.hasTimedOut()) {
 	        if (D) Log.d(TAG, "Response of cmd (" + request.getCommand() + ") timed out!");
@@ -158,13 +113,16 @@ public class ResponseHandler implements Runnable {
     			// TODO: this class should be loaded after the init phase,
     			// once we have determined which HSD we're dealing with...
     			// Until then, only 2010 HSD is supported:
+    			/* Hum !? the following throws a ClassNotFoundException:
     			String decoderClassName = "com.ptc.hsdcanmonitor.commands.Decoder_2ZR_FXE";
     			try {
 					Class decoder = ClassLoader.getSystemClassLoader().loadClass(decoderClassName);
 					_decoder = (GenericResponseDecoder) decoder.newInstance();
 				} catch (Throwable e) {
 					if (D) Log.e(TAG, "unable to load class: "+decoderClassName, e);
-				}
+					return;
+				}*/
+    			_decoder = new Decoder_2ZR_FXE();
     		}
     		// else:
     		_decoder.decodeResponse(request);

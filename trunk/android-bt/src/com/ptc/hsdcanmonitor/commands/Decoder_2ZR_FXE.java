@@ -12,15 +12,15 @@ import com.ptc.hsdcanmonitor.commands.GenericResponseDecoder;;
  *
  */
 public class Decoder_2ZR_FXE extends GenericResponseDecoder {
-    // Debugging
-    private static final String TAG = "HsdCanMonitor";
-    private static final boolean D = true;
 
 	@Override
 	public void decodeResponse(CommandResponseObject cmd) {
 		// TODO Implement me !
-		byte[] response = cmd.getResponsePayload(); // Move into decodeResponse?
-		if (D) Log.d(TAG, "Payload size = "+response.length);
+		// In order to avoid Garbage collection, let's re-user
+		// the same buffer for all commands; the returned len
+		// tells us when to stop reading the buffer.
+		int len = cmd.getResponsePayload(_formattedBytesResponse);
+		if (D) Log.d(TAG, "Payload size = "+len);
 	}
 
 }
