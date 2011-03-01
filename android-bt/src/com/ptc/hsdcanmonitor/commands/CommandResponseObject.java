@@ -16,8 +16,8 @@ import com.ptc.hsdcanmonitor.CanInterface;
  */
 public class CommandResponseObject {
     // Debugging
-    private static final String TAG = "HsdCanMonitor";
-    private static final boolean D = true;
+    protected static final String TAG = "HsdCanMonitor";
+    protected static final boolean D = true;
 
     protected static final String UNLUCKY = "Timed Out!";
 	protected String _command;
@@ -29,7 +29,6 @@ public class CommandResponseObject {
 	// TODO In order to reduce garbage collection (lots of cycles!),
 	// let's create most of our objects only once:
 	private String _tempStringResponse;
-	protected ByteBuffer _formattedBytesResponse = ByteBuffer.allocate(1024);
 
 	public CommandResponseObject(String command) {
 		_command = command;
@@ -63,6 +62,11 @@ public class CommandResponseObject {
 		return false;
 	}
 	
+	/**
+	 * Should only be called for manual commands,
+	 * otherwise we'd be needlessly feeding the Garbage Collector:
+	 * @return
+	 */
 	public String getResponseString() {
 		if (_tempStringResponse == null) {
 			_tempStringResponse = _rawStringResponse.toString();
@@ -74,17 +78,19 @@ public class CommandResponseObject {
 	 * This class is responsible for retrieving the useful information
 	 * contained in the response from the ELM327.
 	 * 
-	 * @return a byte[] => to decrease garbage collector's work, we
-	 * might consider using a ByteBuffer provided by the caller instead)
-	 * e.g. => void getResponsePayload(ByteBuffer response)
+	 * @return number of bytes to read from the buffer (== length of respone)
 	 */
-	public synchronized byte[] getResponsePayload() {
+	public synchronized int getResponsePayload(ByteBuffer response) {
 		// Right now we consider that AT commands have no payload
 		// (only the String response is used).
 		if (!_timedOut && _rawStringResponse != null && !_command.startsWith("AT")) {
 			try {
+				// Reset the buffer:
+				response.rewind();
 				// First, remove parasitic '\r':
-				String temp = getResponseString().replaceAll("\\r", ""); // TODO: Remove empty lines?
+				String temp = getResponseString().replaceAll("\\r", "");
+				// TODO: Avoid using an intermediate string.
+				// split("\n") would be easier to read but feeds the GC...
 				// Split the string around '\n' for possible multiframe:
 				for (String line : temp.split("\n")) {
 					if (line.length() == 0)
@@ -95,25 +101,23 @@ public class CommandResponseObject {
 					// Convert each two-digit string into the corresponding byte:
 					// (ignore the leading 7Ex xx at the beginning of each line)
 					for (int k=2; k<hexaStr.length; k++) {
-						//_formattedBytesResponse.put(Byte.parseByte(hexaStr[k], 16)); Throws NumberFormatException for values >127
-						_formattedBytesResponse.put((byte) ((Character.digit(hexaStr[k].charAt(0), 16) << 4)
+						//response.put(Byte.parseByte(hexaStr[k], 16)); Throws NumberFormatException for values >127
+						response.put((byte) ((Character.digit(hexaStr[k].charAt(0), 16) << 4)
 	                            + Character.digit(hexaStr[k].charAt(1), 16)));
 					}
 				}
 				
 				// Finally, copy the buffer into a byte array:
-				int len = _formattedBytesResponse.position();
-				byte[] res = new byte[len];
-				_formattedBytesResponse.rewind();
-				_formattedBytesResponse.get(res);
-				return res;
+				int len = response.position();
+				response.rewind();
+				return len;
 			}
 			catch(Throwable e) {
 				if (D) Log.e(TAG, "Error that needs debugging! ", e);
 			}
 		}
 		// else:
-		return null;
+		return 0;
 	}
 
 	public void setDuration(long timeSpent) {
@@ -138,7 +142,6 @@ public class CommandResponseObject {
 	public synchronized void reset() {
 		_rawStringResponse.setLength(0);
 		_tempStringResponse = null;
-		_formattedBytesResponse.rewind(); // In case an exception occurred...
 		_duration = 0;
 		_notifyMe = null;
 		_timedOut = false;
