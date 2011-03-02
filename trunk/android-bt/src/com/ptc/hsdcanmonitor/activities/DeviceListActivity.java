@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.ptc.hsdcanmonitor.activities;
+package com.ptc.android.hsdcanmonitor.activities;
 
 import java.util.Set;
 

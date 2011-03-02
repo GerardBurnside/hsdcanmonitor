@@ -1,8 +1,8 @@
-package com.ptc.hsdcanmonitor;
+package com.ptc.android.hsdcanmonitor;
 
 import com.ptc.android.hsdcanmonitor.R;
-import com.ptc.hsdcanmonitor.activities.DeviceListActivity;
-import com.ptc.hsdcanmonitor.commands.CommandResponseObject;
+import com.ptc.android.hsdcanmonitor.activities.DeviceListActivity;
+import com.ptc.android.hsdcanmonitor.commands.CommandResponseObject;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -16,8 +16,8 @@ import android.view.MenuItem;
 
 
 /**
- * This class is the non graphical entry point of the application.
- *
+ * This static class is the non graphical entry point of the application.
+ * *
  * @author Guinness
  *
  */
@@ -43,29 +43,30 @@ public final class CoreEngine {
     public static final int MESSAGE_TOAST = 6;
     public static final int MESSAGE_COMMAND_RESPONSE = 7;
     public static final int MESSAGE_UI_UPDATE = 8;
+    public static final int MESSAGE_LOAD_DECODER = 9;
     // Message keys:
     public static final String TOAST = "toast";
     public static final String DEVICE_NAME = "dev_name";
     public static final String RESPONSE = "response";
     public static final String DURATION = "duration";
     public static final String UI_UPDATE_ITEM = "ui_update_item";
+    public static final String CLASS_NAME = "class_name";
     // Local Bluetooth adapter
-    private BluetoothAdapter _bluetoothAdapter = null;
+    private static BluetoothAdapter _bluetoothAdapter = null;
     // Parent Activity:
-    protected Handler _parentHandler;
+    private static Handler _parentHandler;
 
     // Store references of threads so that we can stop them at will:
-    private Thread _interface;
-    private Thread _scheduler;
-    private Thread _responseHandler;
+    private static Thread _interface;
+    private static Thread _scheduler;
+    private static Thread _responseHandler;
     
-	private CoreEngine() {}
+	private CoreEngine() {} // static class - no instance !
 	
 	/**
 	* Singleton implementation:
 	* CoreEngineHolder is loaded on the first execution of CoreEngine.getInstance() 
 	* or the first access to CoreEngineHolder.INSTANCE, not before.
-	*/
 	private static class CoreEngineHolder { 
 		public static final CoreEngine INSTANCE = new CoreEngine();
 	}
@@ -73,8 +74,9 @@ public final class CoreEngine {
 	public static CoreEngine getInstance() {
 		return CoreEngineHolder.INSTANCE;
 	}
+	*/
 	
-	public void startInit() {
+	public static void startInit() {
         // Get local Bluetooth adapter
         _bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -95,7 +97,7 @@ public final class CoreEngine {
         }
 	}
 
-	public void resumeInit() {
+	public static void resumeInit() {
         // Inform the UI that we are not connected yet:
         setState(STATE_NONE);
 		// Bluetooth is now up and running:
@@ -103,12 +105,12 @@ public final class CoreEngine {
 		// TODO Should try connecting to the previously connected device right away !
 	}
 	
-	public void scanDevices() {
+	public static void scanDevices() {
 		Message msg = _parentHandler.obtainMessage(MESSAGE_SCAN_DEVICES);
         _parentHandler.sendMessage(msg);
 	}
 	
-	public void connectToDevice(final String address) {
+	public static void connectToDevice(final String address) {
         setState(STATE_CONNECTING);
         // Always cancel discovery because it will slow down a connection
         _bluetoothAdapter.cancelDiscovery();
@@ -136,7 +138,7 @@ public final class CoreEngine {
      * Set the current state of the bluetooth connection
      * @param state  An integer defining the current connection state
      */
-    synchronized void setState(int state) {
+    synchronized static void setState(int state) {
         if (D) Log.d(TAG, "setState() -> " + state);
         // Give the new state to the Handler so the UI Activity can update
         _parentHandler.obtainMessage(MESSAGE_STATE_CHANGE, state, -1).sendToTarget();
@@ -146,8 +148,10 @@ public final class CoreEngine {
         	// Let's first launch our commands-related threads:
         	startCommandResponseThreads();
         	// Then let's launch our initialization commands:
-            if (D) Log.d(TAG, "Running Initialization commands...");
-            CommandScheduler.getInstance().startInitCommands();
+        	// TODO In fact we should have one set of init commands for console
+        	// and one for polling.
+            //if (D) Log.d(TAG, "Running Initialization commands...");
+            //CommandScheduler.getInstance().sendInitCommands();
             break;
         case STATE_CONNECTION_LOST:
         case STATE_CONNECT_FAILED: // or only for LOST?
@@ -157,7 +161,7 @@ public final class CoreEngine {
         }
     }
     	
-	protected void startCommandResponseThreads() {
+	private static void startCommandResponseThreads() {
         if (D) Log.d(TAG, "Launching BT commands threads...");
 		if (_interface == null || !_interface.isAlive()) {
 			_interface = new Thread(CanInterface.getInstance());
@@ -173,7 +177,7 @@ public final class CoreEngine {
 		}
 	}
 	
-	public void stopAllThreads() {
+	public static void stopAllThreads() {
 		// Request graceful stop:
 		CanInterface.getInstance().stop();
 		CommandScheduler.getInstance().stop();
@@ -196,7 +200,7 @@ public final class CoreEngine {
 	 * 
 	 * @param resource_id the id of the string in values/strings.xml
 	 */
-	public void notifyUI(/*TODO*/) {
+	public static void notifyUI(/*TODO*/) {
     	Message msg = _parentHandler.obtainMessage(MESSAGE_UI_UPDATE);
         Bundle bundle = new Bundle();
         // TOdO.. bundle.putInt(TOAST, resource_id);
@@ -209,7 +213,7 @@ public final class CoreEngine {
 	 * 
 	 * @param resource_id the id of the string in values/strings.xml
 	 */
-	protected void askForToastMessage(int resource_id) {
+	protected static void askForToastMessage(int resource_id) {
     	Message msg = _parentHandler.obtainMessage(MESSAGE_TOAST);
         Bundle bundle = new Bundle();
         bundle.putInt(TOAST, resource_id);
@@ -217,7 +221,7 @@ public final class CoreEngine {
     	_parentHandler.sendMessage(msg);
 	}
 
-    public void sendManualCommand(final String cmdStr) {
+    public static void sendManualCommand(final String cmdStr) {
         // Check that we're actually connected before trying anything
         if (!CanInterface.getInstance().isConnected()) {
         	askForToastMessage(R.string.not_connected);
@@ -262,7 +266,7 @@ public final class CoreEngine {
         }
     }
 
-	public void setCurrentHandler(Handler handler) {
+	public static void setCurrentHandler(Handler handler) {
 		// TODO support multiple handlers?
 		_parentHandler = handler;
 	}
@@ -270,7 +274,7 @@ public final class CoreEngine {
 	/**
 	 * Below are helper methods to share code between the activities
 	 */
-	public boolean onOptionsItemSelected(MenuItem item) {
+	public static boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
         case R.id.scan:
             // Launch the DeviceListActivity to see devices and do scan
@@ -330,7 +334,7 @@ public final class CoreEngine {
         return false;
 	}
 
-	public void onActivityResult(int requestCode, int resultCode,
+	public static void onActivityResult(int requestCode, int resultCode,
 			Intent data) {
         if(D) Log.d(TAG, "onActivityResult " + resultCode);
         switch (requestCode) {
@@ -358,4 +362,5 @@ public final class CoreEngine {
             }
         }
 	}
+
 }

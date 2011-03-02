@@ -1,8 +1,8 @@
-package com.ptc.hsdcanmonitor.commands;
+package com.ptc.android.hsdcanmonitor.commands;
 
 import android.util.Log;
 
-import com.ptc.hsdcanmonitor.commands.GenericResponseDecoder;;
+import com.ptc.android.hsdcanmonitor.commands.GenericResponseDecoder;
 
 /**
  * This class handles responses from the 2ZR-FXE engines
@@ -14,9 +14,9 @@ import com.ptc.hsdcanmonitor.commands.GenericResponseDecoder;;
 public class Decoder_2ZR_FXE extends GenericResponseDecoder {
 
 	@Override
-	public void decodeResponse(CommandResponseObject cmd) {
+	public void decodeResponse(CommandResponseObject cmd, String ecu) {
 		// TODO Implement me !
-		// In order to avoid Garbage collection, let's re-user
+		// In order to avoid Garbage collection, let's re-use
 		// the same buffer for all commands; the returned len
 		// tells us when to stop reading the buffer.
 		int len = cmd.getResponsePayload(_formattedBytesResponse);

@@ -1,7 +1,7 @@
-package com.ptc.hsdcanmonitor.activities;
+package com.ptc.android.hsdcanmonitor.activities;
 
+import com.ptc.android.hsdcanmonitor.CoreEngine;
 import com.ptc.android.hsdcanmonitor.R;
-import com.ptc.hsdcanmonitor.CoreEngine;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -57,8 +57,8 @@ public class HsdConsoleActivity extends Activity {
         mTitle = (TextView) findViewById(R.id.title_right_text);
         
         // Start the core engine:
-        CoreEngine.getInstance().setCurrentHandler(mHandler);
-        CoreEngine.getInstance().startInit();
+        CoreEngine.setCurrentHandler(mHandler);
+        CoreEngine.startInit();
 
         // Initialize the array adapter for the conversation thread
         mConversationArrayAdapter = new ArrayAdapter<String>(this, R.layout.message);
@@ -87,7 +87,9 @@ public class HsdConsoleActivity extends Activity {
         if(D) Log.e(TAG, "++ ON START ++");
         // This is called each time we switch to this activity: set ourselves as
         // the current handler of all UI-related requests from the CoreEngine:
-        CoreEngine.getInstance().setCurrentHandler(mHandler);
+        CoreEngine.setCurrentHandler(mHandler);
+        
+        // TODO: Check if connected to device and launch activity if needed...
     }
 
     
@@ -107,7 +109,7 @@ public class HsdConsoleActivity extends Activity {
     private void sendManualCommand(TextView view) {
     	String cmd = view.getText().toString();
     	if (cmd.length() > 0) {
-            CoreEngine.getInstance().sendManualCommand(cmd);
+            CoreEngine.sendManualCommand(cmd);
             // Reset out string buffer to zero and clear the edit text field
             mOutEditText.setText("");
             mConversationArrayAdapter.add("Me:  " + cmd);
@@ -123,7 +125,7 @@ public class HsdConsoleActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-    	return CoreEngine.getInstance().onOptionsItemSelected(item);
+    	return CoreEngine.onOptionsItemSelected(item);
    }
 
     // The Handler that gets information back from the underlying services
@@ -186,7 +188,7 @@ public class HsdConsoleActivity extends Activity {
     };
     
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-    	CoreEngine.getInstance().onActivityResult(requestCode, resultCode, data);
+    	CoreEngine.onActivityResult(requestCode, resultCode, data);
     }
     
     @Override
@@ -205,7 +207,7 @@ public class HsdConsoleActivity extends Activity {
     public void onDestroy() {
         super.onDestroy();
         // Stop everything:
-        CoreEngine.getInstance().stopAllThreads();
+        CoreEngine.stopAllThreads();
         if(D) Log.e(TAG, "--- ON DESTROY ---");
     }
 

@@ -1,13 +1,12 @@
-package com.ptc.hsdcanmonitor;
+package com.ptc.android.hsdcanmonitor;
 
 import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import com.ptc.android.hsdcanmonitor.R;
-import com.ptc.hsdcanmonitor.commands.BackgroundCommand;
-import com.ptc.hsdcanmonitor.commands.CommandResponseObject;
-import com.ptc.hsdcanmonitor.commands.InitCommand;
+import com.ptc.android.hsdcanmonitor.commands.BackgroundCommand;
+import com.ptc.android.hsdcanmonitor.commands.CommandResponseObject;
+import com.ptc.android.hsdcanmonitor.commands.InitCommand;
 
 public class CommandScheduler implements Runnable {
 	protected volatile boolean _keepRunning = true;
@@ -26,7 +25,7 @@ public class CommandScheduler implements Runnable {
 	protected ArrayList<BackgroundCommand> _backgroundCommands = new ArrayList<BackgroundCommand>();
     // List of requests: // TODO read them from a file instead !!!
     private final String[] mInitCommandList = {
-    	"ATI", "ATSP6", "ATE0", "ATH1", "ATL1"	
+    	"ATI", "ATSP6", "ATE0", "ATH1", "ATL0", "ATS0"
     };
     private final String[] mBackgroundCommandsList = {
     	"AT SH 7E0",
@@ -44,18 +43,18 @@ public class CommandScheduler implements Runnable {
 		_input = CanInterface.getInstance().getInputQueue();
 		// Build an Array of BackgroundCommands to cycle through
 		// TODO: read them from an xml file instead:
-		for (int k=0; k<mBackgroundCommandsList.length; k++) {
+		for (String cmdStr : mBackgroundCommandsList) {
 			// Force to start over if an "AT" command fails:
-			boolean resetIfFails = mBackgroundCommandsList[k].startsWith("AT");
-			BackgroundCommand newCmd = new BackgroundCommand(mBackgroundCommandsList[k], resetIfFails);
+			boolean resetIfFails = cmdStr.startsWith("AT SH");
+			BackgroundCommand newCmd = new BackgroundCommand(cmdStr, resetIfFails);
 			// ******************* Hardcoded tests for peridocity:
-			if ("013C3E".equals(mBackgroundCommandsList[k]))
+			if ("013C3E".equals(cmdStr))
 				newCmd.periodicity = 3;
-			else if ("AT SH 7E2".equals(mBackgroundCommandsList[k]))
+			else if ("AT SH 7E2".equals(cmdStr))
 				newCmd.periodicity = 2;
-			else if ("210161626768".equals(mBackgroundCommandsList[k]))
+			else if ("210161626768".equals(cmdStr))
 				newCmd.periodicity = 2;
-			else if ("21707174878A98".equals(mBackgroundCommandsList[k]))
+			else if ("21707174878A98".equals(cmdStr))
 				newCmd.periodicity = 2;
 			// ******************** End hardcoded tests.
 			_backgroundCommands.add(newCmd);
@@ -80,6 +79,7 @@ public class CommandScheduler implements Runnable {
 	}
 
 	public void startBackgroundCommands() {
+		sendInitCommands();
 		_runBackgroundCommands = true;
 		resetAndWakeUp();
 	}
@@ -159,7 +159,7 @@ public class CommandScheduler implements Runnable {
 			_input.put(cmd);
 		} catch (InterruptedException e) {
 			// TODO Try again or abort?
-			CoreEngine.getInstance().setState(CoreEngine.STATE_CONNECTION_LOST); // overkill?
+			CoreEngine.setState(CoreEngine.STATE_CONNECTION_LOST); // overkill?
 		}
 	}
 
@@ -167,14 +167,14 @@ public class CommandScheduler implements Runnable {
 		_keepRunning = false;
 	}
 
-	public void startInitCommands() {
+	protected void sendInitCommands() {
 		// TODO Auto-generated method stub
 		for (int k=0; k<mInitCommandList.length; k++) {
 			CommandResponseObject cmd = new InitCommand(mInitCommandList[k]);
 			feedInterface(cmd);
 		}
 		// TODO: We should actually enforce successful responses to init commands:
-		CoreEngine.getInstance().askForToastMessage(R.string.msg_init_done);
+		//CoreEngine.askForToastMessage(R.string.msg_init_done);
 	}
 
 }

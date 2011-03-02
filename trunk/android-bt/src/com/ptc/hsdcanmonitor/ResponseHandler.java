@@ -1,4 +1,4 @@
-package com.ptc.hsdcanmonitor;
+package com.ptc.android.hsdcanmonitor;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -10,11 +10,10 @@ import java.util.Calendar;
 import java.util.concurrent.BlockingQueue;
 
 import com.ptc.android.hsdcanmonitor.R;
-import com.ptc.hsdcanmonitor.commands.BackgroundCommand;
-import com.ptc.hsdcanmonitor.commands.CommandResponseObject;
-import com.ptc.hsdcanmonitor.commands.Decoder_2ZR_FXE;
-import com.ptc.hsdcanmonitor.commands.GenericResponseDecoder;
-import com.ptc.hsdcanmonitor.commands.InitCommand;
+import com.ptc.android.hsdcanmonitor.commands.BackgroundCommand;
+import com.ptc.android.hsdcanmonitor.commands.CommandResponseObject;
+import com.ptc.android.hsdcanmonitor.commands.GenericResponseDecoder;
+import com.ptc.android.hsdcanmonitor.commands.InitCommand;
 
 import android.os.Environment;
 import android.util.Log;
@@ -26,7 +25,10 @@ public class ResponseHandler implements Runnable {
     // For gentle thread stopping:
 	protected volatile boolean _keepRunning = true;
     // Shall we log commands/responses or not:
+	// TODO: Make this configurable:
 	protected volatile boolean _logBackgroundCommands = true;
+	// Store the current ECU to which commands are being sent:
+	protected String _currentECU;
 	// Reference to the handler that will actually interpret the response:
 	protected GenericResponseDecoder _decoder;
     // Base filename for logs to the SD card:
@@ -57,6 +59,7 @@ public class ResponseHandler implements Runnable {
 	public void stop() {
 		_keepRunning = false;
 		endLoggingCommands();
+		_decoder = null;
 	}
 
 	public void run() {
@@ -71,9 +74,36 @@ public class ResponseHandler implements Runnable {
 	}
 
 	private void handleCommand(CommandResponseObject request) {
-		// If manual command, notify the sender with the raw response:
-		request.notifySender();
-		if (request instanceof BackgroundCommand) { // Not O-O but I don't care :-)
+		if (request instanceof InitCommand)  // Not O-O but I don't care :-)
+		{
+			if (request.hasTimedOut()) {
+				// Notify of init pb:
+				CoreEngine.askForToastMessage(R.string.msg_init_failure);
+			}
+			else {
+				// Check which generation of HSD is answering,
+				// TODO !
+				// Load the corresponding decoder.
+				if (_decoder == null) // return;
+				{
+					// TODO: this class should be loaded after the init phase,
+					// once we have determined which HSD we're dealing with...
+					// Until then, only 2010 HSD is supported:
+					String decoderClassName = "com.ptc.android.hsdcanmonitor.commands.Decoder_2ZR_FXE";
+	    		    try {
+						Class<?> myClass = Class.forName(decoderClassName, true, GenericResponseDecoder.class.getClassLoader());//myClassLoader);
+						Object decoder = myClass.newInstance();
+						if (decoder instanceof GenericResponseDecoder)
+							_decoder = (GenericResponseDecoder)decoder;
+						else // WTF?
+							if (D) Log.e(TAG, "Class: "+decoderClassName + " must extend GenericResponseDecoder!");
+					} catch (Throwable e) {
+						if (D) Log.e(TAG, "unable to load class: "+decoderClassName, e);
+					}
+				}
+			}
+		}
+		else if (request instanceof BackgroundCommand) {
 
 			// TODO Pre-format the responses, keeping only the useful bytes:
 			decodeResponses((BackgroundCommand)request);
@@ -83,11 +113,10 @@ public class ResponseHandler implements Runnable {
 				logCommand(request);
 			}
 		}
-		else if (request instanceof InitCommand && request.hasTimedOut()) {
-			// Notify of init pb:
-			CoreEngine.getInstance().askForToastMessage(R.string.msg_init_failure);
+		else {
+			// If manual command, just notify the sender with the raw response:
+			request.notifySender();
 		}
-		// else: the sender has probably already been notified
 	}
     
 	private void decodeResponses(BackgroundCommand request) {
@@ -99,33 +128,15 @@ public class ResponseHandler implements Runnable {
     		}
     	}
     	else {
-    		if (request.getCommand().startsWith("AT"))
-    			return; // Not much to interpret there...
-    		// TODO: I might decide to integrate the "AT" command and the following ones
-    		// within a single class so they become an atomic command:
-    		// it will avoid having to deal with interruption from manual commands
-    		// and most importantly it shall make decoding easier !!!
-    		
-    		// TODO Interpret the responses and store values in a ConcurrentHashMap for the UI to retrieve.
-    		
-    		if (_decoder == null) // return;
-    		{
-    			// TODO: this class should be loaded after the init phase,
-    			// once we have determined which HSD we're dealing with...
-    			// Until then, only 2010 HSD is supported:
-    			/* Hum !? the following throws a ClassNotFoundException:
-    			String decoderClassName = "com.ptc.hsdcanmonitor.commands.Decoder_2ZR_FXE";
-    			try {
-					Class decoder = ClassLoader.getSystemClassLoader().loadClass(decoderClassName);
-					_decoder = (GenericResponseDecoder) decoder.newInstance();
-				} catch (Throwable e) {
-					if (D) Log.e(TAG, "unable to load class: "+decoderClassName, e);
-					return;
-				}*/
-    			_decoder = new Decoder_2ZR_FXE();
+    		if (request.getCommand().startsWith("AT SH")) {
+    			// Let's just store the ECU information:
+    			_currentECU = request.getCommand().split(" ")[2];
+    			return; // Not much more to interpret there...
     		}
-    		// else:
-    		_decoder.decodeResponse(request);
+    		if (_decoder != null) {
+        		_decoder.decodeResponse(request, _currentECU);
+    		}
+			// else?
     	}
 	}
 
@@ -140,7 +151,7 @@ public class ResponseHandler implements Runnable {
     
     public void startLoggingCommands() {
         if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
-        	CoreEngine.getInstance().askForToastMessage(R.string.sd_card_not_mounted);
+        	CoreEngine.askForToastMessage(R.string.sd_card_not_mounted);
         	return;
         }
     	// Create the log file with a name containing the date & time.
