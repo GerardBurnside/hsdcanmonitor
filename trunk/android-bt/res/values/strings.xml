@@ -10,8 +10,8 @@
     <string name="title_connect_failed">connection with device failed!</string>
     <string name="title_connection_lost">connection lost!</string>
     <string name="title_connected_to">connected to: </string>
-    <string name="title_not_connected">not connected</string>
-    <string name="msg_init_done">Initialization done.</string>
+    <string name="title_not_connected">disconnected !</string>
+    <string name="msg_init_done">Starting Monitoring...</string>
     <string name="msg_init_failure">Problem during initialization!</string>
 
     <!--  DeviceListActivity -->
@@ -30,7 +30,7 @@
     <string name="restore_default_seatbelt_beep_settings">Default Seatbelt Beep Settings</string>
     <string name="reverse_single_beep">Single Reverse Beep</string>
     <string name="restore_default_reverse_beep_settings">Default Reverse Beep Settings</string>
-    <string name="monitoring_on">Start Live Monitor</string>
-    <string name="monitoring_off">Stop Live Monitor</string>
+    <string name="monitoring_on">Log To File</string>
+    <string name="monitoring_off">Stop Logging</string>
 
 </resources>
