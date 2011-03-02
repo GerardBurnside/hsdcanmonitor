@@ -1,17 +1,17 @@
-package com.ptc.hsdcanmonitor.commands;
+package com.ptc.android.hsdcanmonitor.commands;
 
 import java.nio.ByteBuffer;
 
 import android.util.Log;
 
-import com.ptc.hsdcanmonitor.CanInterface;
+import com.ptc.android.hsdcanmonitor.CanInterface;
 
 /**
  * 
  * This class is used to pass a command to the CanInterface
  * and store the result of this command.
  * 
- * @author guinness
+ * @author guinness, priusfan
  *
  */
 public class CommandResponseObject {
@@ -20,13 +20,18 @@ public class CommandResponseObject {
     protected static final boolean D = true;
 
     protected static final String UNLUCKY = "Timed Out!";
-	protected String _command;
+
+    // Possible specific timeout for a command that might take longer than usual:
+    public long specific_timeout_value = CanInterface.DEFAULT_RESPONSE_TIME_OUT;
+
+	protected String _command; // The actual command to send.
+	// Buffer for the raw response:
 	protected StringBuilder _rawStringResponse = new StringBuilder();
 	protected long _duration;
 	protected boolean _timedOut = false; // let's not be pessimistic ;-)
-	// Optional, to notify the sender that the response is available.
+	// Optional, to notify the sender that the response is available (for Manual Commands)
 	protected Object _notifyMe;
-	// TODO In order to reduce garbage collection (lots of cycles!),
+	// In order to reduce garbage collection (lots of cycles!),
 	// let's create most of our objects only once:
 	private String _tempStringResponse;
 
@@ -88,11 +93,22 @@ public class CommandResponseObject {
 				// Reset the buffer:
 				response.rewind();
 				// First, remove parasitic '\r':
-				String temp = getResponseString().replaceAll("\\r", "");
-				// TODO: Avoid using an intermediate string.
+				//String temp = getResponseString().replaceAll("\\r", ""); // No longer needed thanks to ATL0
+
 				// split("\n") would be easier to read but feeds the GC...
+				// each frame should contain exactly 20 char: 3+ 8*2 + "\n"
+				int nf=_rawStringResponse.length()/ 20; // nf = number of frames
+				for (int nl=0; nl<nf; nl++) {           // nl= frame number
+					int start=nl*20+5;                  // start with the 6th char
+					for(int bb=0;bb<6;bb++){            // bb est le couple à traiter
+						int pos = start + bb*2;         // pos est la position dans la chaine du couple à traiter
+						response.put((byte) ((Character.digit(_rawStringResponse.charAt(pos), 16) << 4)
+											+ Character.digit(getResponseString().charAt(pos+1), 16)));
+					}
+				}
+				/* PREVIOUS CODE:
 				// Split the string around '\n' for possible multiframe:
-				for (String line : temp.split("\n")) {
+				for (String line : getResponseString().split("\n")) {
 					if (line.length() == 0)
 						continue;
 					//else:
@@ -106,6 +122,7 @@ public class CommandResponseObject {
 	                            + Character.digit(hexaStr[k].charAt(1), 16)));
 					}
 				}
+				***/
 				
 				// Finally, copy the buffer into a byte array:
 				int len = response.position();
@@ -128,7 +145,7 @@ public class CommandResponseObject {
 	}
 	
 	public void timedOut(boolean b) {
-		_duration = CanInterface.MAX_COMMAND_RESPONSE_TIME;
+		_duration = specific_timeout_value;
 		_timedOut = b;
 		_rawStringResponse.append(UNLUCKY);
 	}

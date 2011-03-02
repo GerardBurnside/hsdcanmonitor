@@ -1,8 +1,8 @@
-package com.ptc.hsdcanmonitor.commands;
+package com.ptc.android.hsdcanmonitor.commands;
 
 import java.nio.ByteBuffer;
 
-import com.ptc.hsdcanmonitor.CoreEngine;
+import com.ptc.android.hsdcanmonitor.CoreEngine;
 
 //import java.util.concurrent.ConcurrentHashMap;
 
@@ -62,12 +62,12 @@ public abstract class GenericResponseDecoder {
 
 
 
-	public abstract void decodeResponse(CommandResponseObject cmd);
+	public abstract void decodeResponse(CommandResponseObject cmd, String ecu);
 	
 	/**
 	 * Encapsulated in case we decide to send the information differently:
 	 */
 	protected void sendResultToUI(/*TODO*/) {
-		CoreEngine.getInstance().notifyUI();
+		CoreEngine.notifyUI();
 	}
 }

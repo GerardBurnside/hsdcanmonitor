@@ -1,4 +1,4 @@
-package com.ptc.hsdcanmonitor.commands;
+package com.ptc.android.hsdcanmonitor.commands;
 
 public class InitCommand extends CommandResponseObject {
 

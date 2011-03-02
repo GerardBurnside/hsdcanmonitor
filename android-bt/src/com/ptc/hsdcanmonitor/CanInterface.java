@@ -1,11 +1,11 @@
-package com.ptc.hsdcanmonitor;
+package com.ptc.android.hsdcanmonitor;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.nio.CharBuffer;
-//import java.util.Random;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -17,8 +17,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import com.ptc.hsdcanmonitor.commands.BackgroundCommand;
-import com.ptc.hsdcanmonitor.commands.CommandResponseObject;
+import com.ptc.android.hsdcanmonitor.commands.BackgroundCommand;
+import com.ptc.android.hsdcanmonitor.commands.CommandResponseObject;
 
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -43,7 +43,7 @@ public class CanInterface implements Runnable {
 	protected static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	// The maximum amount of time that we are willing to wait for
 	// a single command response (in milliseconds):
-	public static final long MAX_COMMAND_RESPONSE_TIME = 4000;
+	public static final long DEFAULT_RESPONSE_TIME_OUT = 400;
 	// The input of this thread is a 1-bounded blocking queue,
 	// i.e. we are waiting for each command, one at a time.
 	protected BlockingQueue<CommandResponseObject> _inputQueue;
@@ -73,7 +73,7 @@ public class CanInterface implements Runnable {
 	// Used to debug when no BT CAN interface is available for tests:
 	private boolean _fakeDebugResponses = false;// true if no BT dongle available ;-)
 	// For random chance timeout when debugging:
-	//private Random _myRand = new Random();
+	private Random _myRand = new Random();
 
 
 	// Private constructor prevents instantiation from other classes:
@@ -121,7 +121,7 @@ public class CanInterface implements Runnable {
 		_sock = null;
 		_in = null;
 		_out = null;
-		CoreEngine.getInstance().setState(CoreEngine.STATE_NONE);
+		CoreEngine.setState(CoreEngine.STATE_NONE);
 	}
 
 	/**
@@ -136,35 +136,34 @@ public class CanInterface implements Runnable {
 				_buff.clear();
 				long before = System.currentTimeMillis();
 				////////////////// DEBUG ONLY ////////////////////
-				/*
 				if (_fakeDebugResponses) { // ONLY FOR EARLY DEBUGGING:
-					String debug = //"Fake response!>"
-						"7E8 10 2E 61 01 00 00 00 00 \n\r7E8 21 14 65 50 61 53 00 00 \n\r7E8 22 00 00 00 00 2A 7B 2A \n\r7E8 23 FF 67 12 A7 25 37 29 \n\r7E8 24 3C 00 00 00 00 80 49 \n\r7E8 25 00 00 00 80 00 00 31 \n\r7E8 26 00 00 08 51 0A 00 00 \n\r\n\r >";
+					final String debugStr = //"Fake response!>"
+						"7E8102E610100000000\n7E82114655061530000\n7E822000000002A7B2A\n7E823FF6712A7253729\n7E8243C000000008049\n7E82500000080000031\n7E826000008510A0000\n\n >";
 					int indexDebug=0;
 					// timeout if random is true four times in a row!
 					if (_myRand.nextBoolean() && _myRand.nextBoolean()
 							&& _myRand.nextBoolean() && _myRand.nextBoolean()) {
-						_buff.put(debug.charAt(0)).put(debug.charAt(1));
-						_buff.put(debug.charAt(2)).put(debug.charAt(3));
-						_buff.put(debug.charAt(4));
+						_buff.put(debugStr.charAt(0)).put(debugStr.charAt(1));
+						_buff.put(debugStr.charAt(2)).put(debugStr.charAt(3));
+						_buff.put(debugStr.charAt(4));
 						try {
 							if (D) Log.d(TAG, "Simulating TimeOut, sleep(600)...");
 							Thread.sleep(600);
 						} catch (InterruptedException e) {
-							_buff.put(debug.charAt(5));
+							_buff.put(debugStr.charAt(5));
 							if (D) Log.d(TAG, "Sleep(600) interrupted!");
 							return true;
 						}
-						_buff.put(debug.charAt(6)); // Should not happen ??
+						_buff.put(debugStr.charAt(6)); // Should not happen ??
 						if (D) Log.d(TAG, "After the sleep(600)!?!");
 					} // Not a timeout:
-					else while ((c = debug.charAt(indexDebug++)) != '>') {
+					else while ((c = debugStr.charAt(indexDebug++)) != '>') {
 						_buff.put(c);
 					}
 					if (D) Log.d(TAG, "After fake debug response.");
 				}
 				////////////// END DEBUG ONLY ////////////////////
-				else */ { // this is the actual running code when not debugging: 
+				else { // this is the actual running code when not debugging: 
 					// Start by sending the command:
 					_out.write(_currentRequest.getCommandToSend());
 					_out.flush();
@@ -220,7 +219,7 @@ public class CanInterface implements Runnable {
 			}
 			Future<Boolean> result = _commandsProcessor.submit(_singleCommandExecution);
 			try {
-				Boolean success = result.get(MAX_COMMAND_RESPONSE_TIME, TimeUnit.MILLISECONDS);
+				Boolean success = result.get(request.specific_timeout_value, TimeUnit.MILLISECONDS);
 				if (!success) {
 					handleError();
 				}
@@ -265,7 +264,7 @@ public class CanInterface implements Runnable {
 		        _in = _sock.getInputStream();
 		        _out = _sock.getOutputStream();
 			} catch (IOException e) {
-				CoreEngine.getInstance().setState(CoreEngine.STATE_NONE);
+				CoreEngine.setState(CoreEngine.STATE_NONE);
 				_keepRunning = false;
 				return false;
 			}

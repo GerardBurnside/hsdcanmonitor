@@ -1,7 +1,7 @@
-package com.ptc.hsdcanmonitor.activities;
+package com.ptc.android.hsdcanmonitor.activities;
 
+import com.ptc.android.hsdcanmonitor.CoreEngine;
 import com.ptc.android.hsdcanmonitor.R;
-import com.ptc.hsdcanmonitor.CoreEngine;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -34,10 +34,6 @@ public class HsdGraphicActivity extends Activity {
 
         // Set up the window layout
         setContentView(R.layout.main);
-        
-        // Start the core engine:
-        //CoreEngine.getInstance().setCurrentHandler(mHandler);
-        //CoreEngine.getInstance().startInit();
     }
 
     @Override
@@ -46,7 +42,7 @@ public class HsdGraphicActivity extends Activity {
         if(D) Log.e(TAG, "++ ON START ++");
         // This is called each time we switch to this activity: set ourselves as
         // the current handler of all UI-related requests from the CoreEngine:
-        CoreEngine.getInstance().setCurrentHandler(mHandler);
+        CoreEngine.setCurrentHandler(mHandler);
     }
 
     @Override
@@ -58,7 +54,7 @@ public class HsdGraphicActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-    	 return CoreEngine.getInstance().onOptionsItemSelected(item);
+    	 return CoreEngine.onOptionsItemSelected(item);
     }
 
     // The Handler that gets information back from the underlying services
@@ -118,7 +114,7 @@ public class HsdGraphicActivity extends Activity {
     };
     
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-    	CoreEngine.getInstance().onActivityResult(requestCode, resultCode, data);
+    	CoreEngine.onActivityResult(requestCode, resultCode, data);
     }
     
     @Override
@@ -137,7 +133,7 @@ public class HsdGraphicActivity extends Activity {
     public void onDestroy() {
         super.onDestroy();
         // Stop everything:
-        CoreEngine.getInstance().stopAllThreads();
+        CoreEngine.stopAllThreads();
         if(D) Log.e(TAG, "--- ON DESTROY ---");
     }
 	
