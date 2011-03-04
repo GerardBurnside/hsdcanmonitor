@@ -51,6 +51,8 @@ public class Decoder_2ZR_FXE extends GenericResponseDecoder {
 				us1 = getNextUnsignedShort(); // first part of the 2-byte short
 				ushort = us1*256 + getNextUnsignedShort() - bigShort;
 				res.add(new Pair<Integer, String>(GenericResponseDecoder.MG2_RPM,Integer.toString(ushort)));
+
+				getNextUnsignedShort(); // Unused..
 				// Offs=14	MG1_Torque	NM	=(Tb[Offs + 1] * 256 + Tb[Offs + 2] -128*256) / 8
 				us1 = getNextUnsignedShort(); // first part of the 2-byte short
 				ushort = us1*256 + getNextUnsignedShort() - bigShort;
