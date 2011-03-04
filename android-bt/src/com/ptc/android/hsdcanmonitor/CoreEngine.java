@@ -313,15 +313,15 @@ public final class CoreEngine {
             return true;
         case R.id.monitoring_on_off:
         	// Maybe the "settings" menu would suit this action better (with a tick box)..
-        	// Start or stop monitoring by sending continuously many commands in a loop:
+        	// Start or stop monitoring in a file on the SD card.
         	if (ResponseHandler.getInstance().isLoggingEnabled()) {
         		// Change the label of the menu:
-        		item.setTitle(R.string.monitoring_off);
+        		item.setTitle(R.string.log_to_file);
             	ResponseHandler.getInstance().logToFileEnabled(false);
         	}
         	else {
         		// Change the label of the menu:
-        		item.setTitle(R.string.monitoring_on);
+        		item.setTitle(R.string.stop_logging);
             	ResponseHandler.getInstance().logToFileEnabled(true);
         	}
             return true;
