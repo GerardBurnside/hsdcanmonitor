@@ -7,6 +7,7 @@
       android:id="@+id/topTable"
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
+      android:stretchColumns="1,3"
 	  android:layout_alignParentTop="true"
       android:background="#dddddd" android:gravity="top" android:isScrollContainer="false">
       <TableRow
@@ -16,18 +17,18 @@
         android:background="#000000">
       	<TextView
       	  android:text="10"
-      	  android:id="@+id/coolant_temp"
-      	  android:textSize="160px"
+      	  android:id="@+id/ice_temp"
+      	  android:textSize="90px"
       	  android:gravity="bottom|right"/>
       	<TextView
       	  android:lines="2"
-      	  android:text="°C\n(coolant)"
-      	  android:id="@+id/coolant_temp_unit"
+      	  android:text="°C\n(ICE)"
+      	  android:id="@+id/ice_temp_unit"
       	  android:gravity="bottom|left"/>
       	<TextView
       	  android:text="0"
       	  android:id="@+id/ice_rpm"
-      	  android:textSize="160px"
+      	  android:textSize="90px"
       	  android:gravity="bottom|right"/>
       	<TextView
       	  android:text="rpm (ICE)"
@@ -55,7 +56,7 @@
       	  android:gravity="bottom|right"/>
       </TableRow>
     </TableLayout>
-    <TableLayout
+    <TableLayout android:id="@+id/table_icetorque"
       android:layout_below="@id/table_batt"
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
@@ -67,36 +68,48 @@
       	<TextView
       	  android:text="0"
       	  android:id="@+id/ice_torque"
-      	  android:textSize="160px"
-      	  android:gravity="bottom|right"/>
+      	  android:textSize="120px"
+      	  android:gravity="center"/>
       	<TextView
       	  android:text="NM"
       	  android:id="@+id/ice_torque_lbl"
-      	  android:gravity="bottom|left"/>
+      	  android:gravity="bottom|right"/>
       </TableRow>
     </TableLayout>
-    <TableLayout
+    <TableLayout android:id="@+id/table_mg1rpm"
+      android:layout_below="@id/table_icetorque"
       android:layout_width="fill_parent"
       android:stretchColumns="1,3"
       android:layout_height="wrap_content"
-      android:background="#dddddd" android:layout_alignParentBottom="true">
-      <TableRow
+      android:gravity="center_vertical" 
+      android:background="#dddddd">
+      <TableRow android:gravity="center_horizontal"
         android:background="#000000">
       	<TextView
       	  android:text="10"
-      	  android:id="@+id/ice_temp"
-      	  android:textSize="160px"
-      	  android:gravity="bottom|right"/>
+      	  android:id="@+id/mg1_rpm"
+      	  android:textSize="120px"
+      	  android:gravity="center"/>
       	<TextView
-      	  android:lines="2"
-      	  android:text="°C\n(ice)"
-      	  android:id="@+id/ice_temp_unit"
-      	  android:gravity="bottom|left"/>
+      	  android:text="rpm (MG1)"
+      	  android:id="@+id/mg1_rpm_lbl"
+      	  android:gravity="bottom|right"/>
+      </TableRow>
+    </TableLayout>
+    <TableLayout android:id="@+id/table_mg2rpm"
+      android:layout_below="@id/table_mg1rpm"
+      android:layout_width="fill_parent"
+      android:stretchColumns="1,3"
+      android:layout_height="wrap_content"
+      android:gravity="center_vertical" 
+      android:background="#dddddd" android:layout_alignParentBottom="true">
+      <TableRow android:gravity="center_horizontal"
+        android:background="#000000">
       	<TextView
       	  android:id="@+id/mg2_rpm"
       	  android:text="0"
-      	  android:gravity="bottom|left"
-      	  android:textSize="160px"/>
+      	  android:gravity="center"
+      	  android:textSize="120px"/>
       	<TextView
       	  android:text="rpm (MG2)"
       	  android:id="@+id/mg2_rpm_lbl"
@@ -104,52 +117,4 @@
       	  android:gravity="bottom|right"/>
       </TableRow>
     </TableLayout>
-    <!-- <TableLayout
-      android:layout_width="fill_parent"
-      android:layout_height="wrap_content"
-      android:background="#dddddd">
-      <TableRow
-      	android:layout_margin="2dip"
-        android:background="#000000">
-		<TextView
-      	  android:id="@+id/air_temp_text"
-      	  android:text=""
-      	  android:layout_marginLeft="15px"
-      	  android:layout_gravity="center_vertical|center_horizontal"/>
-	  </TableRow>
-    </TableLayout>
-    <TableLayout
-      android:layout_width="fill_parent"
-      android:layout_height="wrap_content"
-      android:stretchColumns="*"
-      android:background="#dddddd">
-      <TableRow
-      	android:layout_margin="2dip"
-        android:background="#000000">
-      	<TextView
-      	  android:id="@+id/inst_fuel_econ_text"
-      	  android:text="0 mpg"/>
-      	<TextView
-      	  android:id="@+id/run_time_text"
-      	  android:text="00:00:00"/>
-      	<TextView
-      	  android:id="@+id/avg_rpm_text"
-      	  android:text="0000 RPM"/>
-      	<TextView
-      	  android:id="@+id/avg_spd_text"
-      	  android:text="0 mph"/>
-      </TableRow>
-    </TableLayout>     -->
-	<ScrollView
-	  android:id="@+id/data_scroll"
-	  android:layout_width="fill_parent"
-	  android:layout_height="wrap_content">
-		<TableLayout
-		  android:id="@+id/data_table"
-		  android:layout_width="fill_parent"
-		  android:layout_height="fill_parent"
-		  android:stretchColumns="*"
-		  android:background="#dddddd">
-		</TableLayout>
-	</ScrollView>        
 </RelativeLayout>

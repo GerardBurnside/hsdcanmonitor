@@ -14,8 +14,10 @@ import com.ptc.android.hsdcanmonitor.commands.GenericResponseDecoder;
  * @authors guinness, priusfan
  *
  */
-public class Decoder_2ZR_FXE extends GenericResponseDecoder {
+public class Decoder_1NZ_FXE extends GenericResponseDecoder {
 
+	// TODO This is currently PIII stuff !!!
+	
 	@Override
 	public ArrayList<Pair<Integer, String>> decodeResponse(CommandResponseObject cmd, String ecu) {
 		ArrayList<Pair<Integer, String>> res = null;

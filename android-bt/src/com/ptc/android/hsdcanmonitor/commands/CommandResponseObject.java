@@ -101,27 +101,10 @@ public class CommandResponseObject {
 					for(int bb=0;bb<7;bb++){            // bb est le couple à traiter
 						int pos = start + bb*2;         // pos est la position dans la chaine du couple à traiter
 						response.put((byte) ((Character.digit(_rawStringResponse.charAt(pos), 16) << 4)
-											+ Character.digit(getResponseString().charAt(pos+1), 16)));
+											+ Character.digit(_rawStringResponse.charAt(pos+1), 16)));
 					}
 				}
-				/* PREVIOUS CODE:
-				// Split the string around '\n' for possible multiframe:
-				for (String line : getResponseString().split("\n")) {
-					if (line.length() == 0)
-						continue;
-					//else:
-					// Each space-separated string is an hexadecimal value:
-					String[] hexaStr = line.split(" ");
-					// Convert each two-digit string into the corresponding byte:
-					// (ignore the leading 7Ex xx at the beginning of each line)
-					for (int k=2; k<hexaStr.length; k++) {
-						//response.put(Byte.parseByte(hexaStr[k], 16)); Throws NumberFormatException for values >127
-						response.put((byte) ((Character.digit(hexaStr[k].charAt(0), 16) << 4)
-	                            + Character.digit(hexaStr[k].charAt(1), 16)));
-					}
-				}
-				***/
-				
+
 				// Finally, copy the buffer into a byte array:
 				int len = response.position();
 				response.rewind();

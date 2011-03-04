@@ -91,6 +91,7 @@ public class ResponseHandler implements Runnable {
 					// once we have determined which HSD we're dealing with...
 					// Until then, only 2010 HSD is supported:
 					String decoderClassName = "com.ptc.android.hsdcanmonitor.commands.Decoder_2ZR_FXE";
+					// For PII, load "com.ptc.android.hsdcanmonitor.commands.Decoder_1NZ_FXE" instead.
 	    		    try {
 						Class<?> myClass = Class.forName(decoderClassName, true, GenericResponseDecoder.class.getClassLoader());//myClassLoader);
 						Object decoder = myClass.newInstance();

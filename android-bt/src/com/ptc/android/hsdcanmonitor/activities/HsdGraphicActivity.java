@@ -30,6 +30,11 @@ public class HsdGraphicActivity extends Activity {
     private static final boolean D = true;
 
     private TextView mBattAmp; 
+    private TextView mIceRPM; 
+    private TextView mIceTemp;
+    private TextView mIceTorque;
+    private TextView mMG1RPM;
+    private TextView mMG2RPM;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -45,7 +50,13 @@ public class HsdGraphicActivity extends Activity {
         // Set up the window layout
         setContentView(R.layout.main);
         
+        // Any one of those may be null depending on the layout:
         mBattAmp = (TextView) findViewById(R.id.hv_batt_amp);
+        mIceRPM = (TextView) findViewById(R.id.ice_rpm);
+        mIceTemp = (TextView) findViewById(R.id.ice_temp);
+        mMG1RPM = (TextView) findViewById(R.id.mg1_rpm);
+        mMG2RPM = (TextView) findViewById(R.id.mg2_rpm);
+        mIceTorque = (TextView) findViewById(R.id.ice_torque);
     }
 
     @Override
@@ -140,7 +151,28 @@ public class HsdGraphicActivity extends Activity {
                 for (Pair<Integer, String> item : refreshValues) {
                 	switch(item.first) {
                 	case GenericResponseDecoder.BATT_AMP:
-                		mBattAmp.setText(item.second);
+                		if (mBattAmp != null)
+                			mBattAmp.setText(item.second);
+                		break;
+                	case GenericResponseDecoder.ICE_TEMP:
+                		if (mIceTemp != null)
+                			mIceTemp.setText(item.second);
+                		break;
+                	case GenericResponseDecoder.ICE_RPM:
+                		if (mIceRPM != null)
+                			mIceRPM.setText(item.second);
+                		break;
+                	case GenericResponseDecoder.ICE_TORQUE:
+                		if (mIceTorque != null)
+                			mIceTorque.setText(item.second);
+                		break;
+                	case GenericResponseDecoder.MG1_RPM:
+                		if (mMG1RPM != null)
+                			mMG1RPM.setText(item.second);
+                		break;
+                	case GenericResponseDecoder.MG2_RPM:
+                		if (mMG2RPM != null)
+                			mMG2RPM.setText(item.second);
                 		break;
                 	}
                 	
