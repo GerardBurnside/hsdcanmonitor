@@ -18,6 +18,7 @@ package com.ptc.android.hsdcanmonitor.activities;
 
 import java.util.Set;
 
+import com.ptc.android.hsdcanmonitor.CoreEngine;
 import com.ptc.android.hsdcanmonitor.R;
 
 import android.app.Activity;
@@ -47,8 +48,8 @@ import android.widget.AdapterView.OnItemClickListener;
  */
 public class DeviceListActivity extends Activity {
     // Debugging
-    private static final String TAG = "DeviceListActivity";
-    private static final boolean D = true;
+    private static final String TAG = "HsdCanMonitor.DeviceListActivity";
+    private static final boolean D = CoreEngine.D;
 
     // Return Intent extra
     public static String EXTRA_DEVICE_ADDRESS = "device_address";
@@ -68,6 +69,11 @@ public class DeviceListActivity extends Activity {
 
         // Set result CANCELED incase the user backs out
         setResult(Activity.RESULT_CANCELED);
+
+        if (CoreEngine.Exiting) {
+    		finish();
+    		return;
+    	}
 
         // Initialize the button to perform device discovery
         Button scanButton = (Button) findViewById(R.id.button_scan);
@@ -128,8 +134,13 @@ public class DeviceListActivity extends Activity {
             mBtAdapter.cancelDiscovery();
         }
 
-        // Unregister broadcast listeners
-        this.unregisterReceiver(mReceiver);
+        //try {
+            // Unregister broadcast listeners
+            this.unregisterReceiver(mReceiver);
+        /*}
+        catch (Throwable e) {
+        	Log.e(TAG, "Error while unregistering from BT events", e);
+        }*/
     }
 
     /**

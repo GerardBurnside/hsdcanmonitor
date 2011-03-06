@@ -11,6 +11,7 @@ import com.ptc.android.hsdcanmonitor.commands.GenericResponseDecoder;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -27,14 +28,14 @@ import android.widget.Toast;
 public class HsdGraphicActivity extends Activity {
     // Debugging
     private static final String TAG = "HsdCanMonitor.UI";
-    private static final boolean D = true;
+    private static final boolean D = CoreEngine.D;
 
     private TextView mBattAmp; 
-    private TextView mIceRPM; 
     private TextView mIceTemp;
     private TextView mIceTorque;
     private TextView mMG1RPM;
     private TextView mMG2RPM;
+    private TextView mIceRPM;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -143,24 +144,59 @@ public class HsdGraphicActivity extends Activity {
                 startActivity(liveIntent);
             	break;
             case CoreEngine.MESSAGE_FINISH:
-                finishActivity(CoreEngine.REQUEST_CONNECT_DEVICE);
+                //finishActivity(CoreEngine.REQUEST_CONNECT_DEVICE);
                 finish();
             	break;
+            case CoreEngine.MESSAGE_SHOW_HV_DETAIL:
+                Intent hvIntent = new Intent(getApplicationContext(), HvBatteryVoltageActivity.class);
+                startActivity(hvIntent);
+                break;
             case CoreEngine.MESSAGE_UI_UPDATE:
                 ArrayList<Pair<Integer, String>> refreshValues = (ArrayList<Pair<Integer, String>>) msg.getData().get(CoreEngine.UI_UPDATE_ITEM);
                 for (Pair<Integer, String> item : refreshValues) {
                 	switch(item.first) {
                 	case GenericResponseDecoder.BATT_AMP:
-                		if (mBattAmp != null)
+                		if (mBattAmp != null) {
                 			mBattAmp.setText(item.second);
+                			if (item.second.charAt(0) == '-') {
+                				// Cool, we're getting energy back
+                				mBattAmp.setTextColor(Color.GREEN);
+                			}
+                			else mBattAmp.setTextColor(Color.LTGRAY);
+                		}                			
                 		break;
                 	case GenericResponseDecoder.ICE_TEMP:
-                		if (mIceTemp != null)
+                		if (mIceTemp != null) {
                 			mIceTemp.setText(item.second);
+                			final String IceWontTurnOff = "40";
+                			final String NeedIdlingCheckCeremony = "70";
+                   			final String howHotIsTooHot = "100";
+                			if (IceWontTurnOff.length() >= item.second.length() 
+                				&& IceWontTurnOff.compareTo(item.second) > 0) {
+                				mIceTemp.setTextColor(Color.BLUE);                				
+                			}
+                			else if (NeedIdlingCheckCeremony.length() == item.second.length() 
+                    				&& NeedIdlingCheckCeremony.compareTo(item.second) > 0) {
+                				mIceTemp.setTextColor(Color.GRAY);
+                			}
+                			else if (howHotIsTooHot.length() > item.second.length()) {
+                				mIceTemp.setTextColor(Color.GREEN);
+                			}
+                			else mIceTemp.setTextColor(Color.RED);
+                		}
                 		break;
                 	case GenericResponseDecoder.ICE_RPM:
-                		if (mIceRPM != null)
+                		if (mIceRPM != null) {
                 			mIceRPM.setText(item.second);
+                			final String minRPM = "880";
+                			if (minRPM.length() >= item.second.length() 
+                				&& minRPM.compareTo(item.second) > 0) {
+                				mIceRPM.setTextColor(Color.DKGRAY);                				
+                			}
+                			else {
+                				mIceRPM.setTextColor(Color.WHITE);
+                			}
+                		}
                 		break;
                 	case GenericResponseDecoder.ICE_TORQUE:
                 		if (mIceTorque != null)
@@ -175,7 +211,6 @@ public class HsdGraphicActivity extends Activity {
                 			mMG2RPM.setText(item.second);
                 		break;
                 	}
-                	
                 }
                 break;
             }

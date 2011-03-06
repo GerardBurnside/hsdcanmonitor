@@ -26,7 +26,7 @@
     <!-- Options Menu -->
     <string name="connect">Connect</string>
     <string name="seatbelt_remove_all">Remove all seatbelt beeps</string>
-    <string name="seatbelt_driver_only">Remove passenger beep</string>
+    <string name="seatbelt_driver_only">Remove driver beep</string>
     <string name="restore_default_seatbelt_beep_settings">Default Seatbelt Beep Settings</string>
     <string name="reverse_single_beep">Single Reverse Beep</string>
     <string name="restore_default_reverse_beep_settings">Default Reverse Beep Settings</string>
