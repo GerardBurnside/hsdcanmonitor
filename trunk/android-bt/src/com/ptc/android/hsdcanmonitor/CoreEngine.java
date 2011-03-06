@@ -27,7 +27,7 @@ import android.view.MenuItem;
 public final class CoreEngine {
     // Debugging
     private static final String TAG = "HsdCanMonitor";
-    private static final boolean D = true;
+    public static final boolean D = true;
     // Intent request codes 
     public static final int REQUEST_CONNECT_DEVICE = 1;
     public static final int REQUEST_ENABLE_BT = 2;
@@ -47,6 +47,7 @@ public final class CoreEngine {
     public static final int MESSAGE_COMMAND_RESPONSE = 7;
     public static final int MESSAGE_UI_UPDATE = 8;
     public static final int MESSAGE_SWITCH_UI = 9;
+    public static final int MESSAGE_SHOW_HV_DETAIL = 10;
     // Message keys:
     public static final String TOAST = "toast";
     public static final String DEVICE_NAME = "dev_name";
@@ -68,19 +69,6 @@ public final class CoreEngine {
     public static volatile boolean Exiting = false;
     
 	private CoreEngine() {} // static class - no instance !
-	
-	/**
-	* Singleton implementation:
-	* CoreEngineHolder is loaded on the first execution of CoreEngine.getInstance() 
-	* or the first access to CoreEngineHolder.INSTANCE, not before.
-	private static class CoreEngineHolder { 
-		public static final CoreEngine INSTANCE = new CoreEngine();
-	}
-	 
-	public static CoreEngine getInstance() {
-		return CoreEngineHolder.INSTANCE;
-	}
-	*/
 	
 	public static void startInit() {
         // Get local Bluetooth adapter
@@ -190,11 +178,11 @@ public final class CoreEngine {
 		ResponseHandler.getInstance().stop();
 		// Then interrupt the threads:
 		if (_interface != null)
-			_interface.stop();
+			_interface.interrupt();
 		if (_scheduler != null)
-			_scheduler.stop();
+			_scheduler.interrupt();
 		if (_responseHandler != null)
-			_responseHandler.stop();
+			_responseHandler.interrupt();
 		// Finally remove the references:
 		_interface = null;
 		_scheduler = null;
@@ -272,10 +260,19 @@ public final class CoreEngine {
             }.start();
         }
     }
-
+    /**
+     * The handler is the currently displayed activity.
+     * @param handler
+     */
 	public static void setCurrentHandler(Handler handler) {
-		// TODO support multiple handlers?
 		_parentHandler = handler;
+		//if (_parentHandler == null) {
+			// An activity just ceased, let's check if 
+			// another one is started within two seconds,
+			// otherwise let's kill all threads?
+			// TODO?
+			// Or not?: example: phone call while driving...
+		//}
 	}
 
 	/**
@@ -289,26 +286,28 @@ public final class CoreEngine {
         	scanDevices();
             return true;
         case R.id.reverse_beep_remove:
-        	sendManualCommand("07c0 3bac40");
+        	sendManualCommand("AT SH 7C0");
+        	sendManualCommand("3bac40");
         	// TODO: check the response !
             return true;
         case R.id.reverse_beep_restore:
-        	sendManualCommand("07c0 3bac00"); // Test non concluant pour remettre les bips!
-        	// Test auto headlight off: ça marche pas :-(
-           	//sendMessage("07 50 40 3B 15 00 00 00 00");
-        	// TODO: check the response !
+        	sendManualCommand("AT SH 7C0");
+        	sendManualCommand("3bac00");
             return true;
 
         case R.id.seatbelt_beep_restore_default:
-        	sendManualCommand("07c0 3ba7c0");
+        	sendManualCommand("AT SH 7C0");
+        	sendManualCommand("3ba7c0");
         	// TODO: check the response !
             return true;
         case R.id.seatbelt_beep_driver_only:
-        	sendManualCommand("07c0 3ba740");
+        	sendManualCommand("AT SH 7C0");
+        	sendManualCommand("3ba740");
         	// TODO: check the response !
             return true;
         case R.id.seatbelt_beep_remove_all:
-        	sendManualCommand("07c0 3ba700");
+        	sendManualCommand("AT SH 7C0");
+        	sendManualCommand("3ba700");
         	// TODO: check the response !
             return true;
         case R.id.monitoring_on_off:
@@ -327,16 +326,35 @@ public final class CoreEngine {
             return true;
 	    case R.id.app_settings:
 	    	// TODO?
+	    	// TEST: For now, show HV DETAIL:
+			msg = _parentHandler.obtainMessage(MESSAGE_SHOW_HV_DETAIL);
+	        _parentHandler.sendMessage(msg);
+	    	
 	        return true;
 	    case R.id.switch_view:
 			msg = _parentHandler.obtainMessage(MESSAGE_SWITCH_UI);
 	        _parentHandler.sendMessage(msg);
 	        return true;
 	    case R.id.exit:
+	    	// Let all Activities know that they should not be displayed:
 	    	Exiting = true;
 	    	stopAllThreads();
 	    	msg = _parentHandler.obtainMessage(MESSAGE_FINISH);
 	    	_parentHandler.sendMessage(msg);
+	    	// Because Android will not let us die in peace,
+	    	// let's allow the acitivities to be created again later:
+	    	new Thread() {
+	    		@Override
+	    		public void run() {
+	    			try {
+						Thread.sleep(3000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+	    			Exiting = false;
+	    		}
+	    	};
 	        return true;
         }
         return false;

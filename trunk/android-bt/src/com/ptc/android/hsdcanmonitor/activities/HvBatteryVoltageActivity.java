@@ -1,7 +1,10 @@
 package com.ptc.android.hsdcanmonitor.activities;
 
+
+import com.ptc.android.hsdcanmonitor.CommandScheduler;
 import com.ptc.android.hsdcanmonitor.CoreEngine;
 import com.ptc.android.hsdcanmonitor.R;
+import com.ptc.android.hsdcanmonitor.ResponseHandler;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -10,34 +13,33 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.View.OnClickListener;
-import android.view.inputmethod.EditorInfo;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class HsdConsoleActivity extends Activity {
+public class HvBatteryVoltageActivity extends Activity {
     // Debugging
-    private static final String TAG = "HsdCanMonitor.Console";
+    private static final String TAG = "HsdCanMonitor.HV";
     private static final boolean D = CoreEngine.D;
     // Layout Views
-    private TextView mTitle;
-    private ListView mConversationView;
-    private EditText mOutEditText;
-    private Button mSendButton;
-
-    // Array adapter for the conversation thread
-    private ArrayAdapter<String> mConversationArrayAdapter;
+    private TextView mGroup01;
+    private TextView mGroup02;
+    private TextView mGroup03;
+    private TextView mGroup04;
+    private TextView mGroup05;
+    private TextView mGroup06;
+    private TextView mGroup07;
+    private TextView mGroup08;
+    private TextView mGroup09;
+    private TextView mGroup10;
+    private TextView mGroup11;
+    private TextView mGroup12;
+    private TextView mGroup13;
+    private TextView mGroup14;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -45,39 +47,32 @@ public class HsdConsoleActivity extends Activity {
         if(D) Log.e(TAG, "+++ ON CREATE +++");
 
         // Set up the window layout
-        requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
+        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, 
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON );
-        setContentView(R.layout.main_console);
-        getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.custom_title);
+        setContentView(R.layout.hv_batt_cells);
 
-        // Set up the custom title
-        mTitle = (TextView) findViewById(R.id.title_left_text);
-        mTitle.setText(R.string.app_name);
-        mTitle = (TextView) findViewById(R.id.title_right_text);
+        // Find the layout items:
+        mGroup01 = (TextView) findViewById(R.id.hv_volt_group01);
+        mGroup02 = (TextView) findViewById(R.id.hv_volt_group02);
+        mGroup03 = (TextView) findViewById(R.id.hv_volt_group03);
+        mGroup04 = (TextView) findViewById(R.id.hv_volt_group04);
+        mGroup05 = (TextView) findViewById(R.id.hv_volt_group05);
+        mGroup06 = (TextView) findViewById(R.id.hv_volt_group06);
+        mGroup07 = (TextView) findViewById(R.id.hv_volt_group07);
+        mGroup08 = (TextView) findViewById(R.id.hv_volt_group08);
+        mGroup09 = (TextView) findViewById(R.id.hv_volt_group09);
+        mGroup10 = (TextView) findViewById(R.id.hv_volt_group10);
+        mGroup11 = (TextView) findViewById(R.id.hv_volt_group11);
+        mGroup12 = (TextView) findViewById(R.id.hv_volt_group12);
+        mGroup13 = (TextView) findViewById(R.id.hv_volt_group13);
+        mGroup14 = (TextView) findViewById(R.id.hv_volt_group14);
         
         // Start the core engine:
         CoreEngine.setCurrentHandler(mHandler);
-        CoreEngine.startInit();
-
-        // Initialize the array adapter for the conversation thread
-        mConversationArrayAdapter = new ArrayAdapter<String>(this, R.layout.message);
-        mConversationView = (ListView) findViewById(R.id.in);
-        mConversationView.setAdapter(mConversationArrayAdapter);
-
-        // Initialize the compose field with a listener for the return key
-        mOutEditText = (EditText) findViewById(R.id.edit_text_out);
-        mOutEditText.setOnEditorActionListener(mWriteListener);
-
-        // Initialize the send button with a listener that for click events
-        mSendButton = (Button) findViewById(R.id.button_send);
-        mSendButton.setOnClickListener(new OnClickListener() {
-            public void onClick(View v) {
-                // Send a message using content of the edit text widget
-                TextView view = (TextView) findViewById(R.id.edit_text_out);
-            	sendManualCommand(view);
-            }
-        });
+        //CoreEngine.startInit();
 
     }
 
@@ -94,29 +89,19 @@ public class HsdConsoleActivity extends Activity {
         CoreEngine.setCurrentHandler(mHandler);
         
         // TODO: Check if connected to device and launch activity if needed...
+        
+        // TODO: Keep asking for: 
+        /*
+         * 7E2 21 81
+14 couples d'octets consécutifs
+à diviser par 1000 (coef à vérifier) pour obtenir des volts.
+         */
     }
-
-    
-    // The action listener for the EditText widget, to listen for the return key
-    private TextView.OnEditorActionListener mWriteListener =
-        new TextView.OnEditorActionListener() {
-        public boolean onEditorAction(TextView view, int actionId, KeyEvent event) {
-            // If the action is a key-up event on the return key, send the command
-            if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_UP) {
-            	sendManualCommand(view);
-            }
-            if(D) Log.i(TAG, "END onEditorAction");
-            return true;
-        }
-    };
     
     private void sendManualCommand(TextView view) {
     	String cmd = view.getText().toString();
     	if (cmd.length() > 0) {
             CoreEngine.sendManualCommand(cmd);
-            // Reset out string buffer to zero and clear the edit text field
-            mOutEditText.setText("");
-            mConversationArrayAdapter.add("Me:  " + cmd);
     	}
     }
 
@@ -134,7 +119,7 @@ public class HsdConsoleActivity extends Activity {
 
     // The Handler that gets information back from the underlying services
     private final Handler mHandler = new Handler() {
-        @Override
+		@Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
             case CoreEngine.MESSAGE_STATE_CHANGE:
@@ -142,19 +127,22 @@ public class HsdConsoleActivity extends Activity {
                 switch (msg.arg1) {
                 case CoreEngine.STATE_CONNECTED:
                 	// Other info (device name) will be received in a separate message.
-                    mConversationArrayAdapter.clear();
                     break;
                	case CoreEngine.STATE_CONNECTING:
-                    	mTitle.setText(R.string.title_connecting);
+                        Toast.makeText(getApplicationContext(), R.string.title_connecting,
+                                Toast.LENGTH_SHORT).show();
                     break;
                	case CoreEngine.STATE_CONNECT_FAILED:
-                	mTitle.setText(R.string.title_connect_failed);
+                    Toast.makeText(getApplicationContext(), R.string.title_connect_failed,
+                            Toast.LENGTH_SHORT).show();
                 break;
                	case CoreEngine.STATE_CONNECTION_LOST:
-                	mTitle.setText(R.string.title_connection_lost);
+                    Toast.makeText(getApplicationContext(), R.string.title_connection_lost,
+                            Toast.LENGTH_SHORT).show();
                 break;
                 case CoreEngine.STATE_NONE:
-                    mTitle.setText(R.string.title_not_connected);
+                    Toast.makeText(getApplicationContext(), R.string.title_not_connected,
+                            Toast.LENGTH_SHORT).show();
                     break;
 				}
                 break;
@@ -162,8 +150,6 @@ public class HsdConsoleActivity extends Activity {
                 String connectedDeviceName = msg.getData().getString(CoreEngine.DEVICE_NAME);
                 Toast.makeText(getApplicationContext(), "Connected to "
                                + connectedDeviceName, Toast.LENGTH_SHORT).show();
-                mTitle.setText(R.string.title_connected_to);
-                mTitle.append(connectedDeviceName);
                 break;
             case CoreEngine.MESSAGE_TOAST:
                 Toast.makeText(getApplicationContext(), msg.getData().getInt(CoreEngine.TOAST),
@@ -178,18 +164,16 @@ public class HsdConsoleActivity extends Activity {
                 startActivityForResult(serverIntent, CoreEngine.REQUEST_CONNECT_DEVICE);
                 break;
             case CoreEngine.MESSAGE_COMMAND_RESPONSE:
-                // We received a response to a manual command,
-            	// let's display it on our console/chat screen:
-            	mConversationArrayAdapter.add("Received in "+
-            			msg.getData().getLong(CoreEngine.DURATION)+"ms: "+
-            			msg.getData().getString(CoreEngine.RESPONSE));
+            	// Interpret the response here:
+            	// TODO:
+
             	break;
             case CoreEngine.MESSAGE_SWITCH_UI:
                 Intent liveIntent = new Intent(getApplicationContext(), HsdGraphicActivity.class);
                 startActivity(liveIntent);
             	break;
             case CoreEngine.MESSAGE_FINISH:
-                //finishActivity(CoreEngine.REQUEST_CONNECT_DEVICE);
+                finishActivity(CoreEngine.REQUEST_CONNECT_DEVICE);
                 finish();
             	break;
             }
@@ -204,12 +188,18 @@ public class HsdConsoleActivity extends Activity {
     protected synchronized void onPause() {
         super.onPause();
         if(D) Log.e(TAG, "- ON PAUSE -");
-    }
+        // Unless we're logging to file, stop asking for values:
+    	if (!ResponseHandler.getInstance().isLoggingEnabled()) {
+        	CommandScheduler.getInstance().stopBackgroundCommands();
+    	}
+   }
 
     @Override
     public void onStop() {
         super.onStop();
         if(D) Log.e(TAG, "-- ON STOP --");
+        // Unconditional stop of background commands:
+    	CommandScheduler.getInstance().stopBackgroundCommands();
     }
 
     @Override
@@ -219,5 +209,5 @@ public class HsdConsoleActivity extends Activity {
         //CoreEngine.stopAllThreads();
         if(D) Log.e(TAG, "--- ON DESTROY ---");
     }
-
+	
 }

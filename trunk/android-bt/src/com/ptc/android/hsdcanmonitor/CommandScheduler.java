@@ -77,6 +77,13 @@ public class CommandScheduler implements Runnable {
 		return CommandSchedulerHolder.INSTANCE;
 	} 
 
+	public void addManualCommands(CommandResponseObject[] cmds) {
+		for (CommandResponseObject cmd : cmds)
+			manualCommands.add(cmd);
+		// Make sure we're ready to handle it:
+		resetAndWakeUp();
+	}
+
 	public void addManualCommand(CommandResponseObject cmd) {
 		manualCommands.add(cmd);
 		resetAndWakeUp();
@@ -123,6 +130,7 @@ public class CommandScheduler implements Runnable {
 
 	@Override
 	public void run() {
+		_keepRunning = true; // Required if it was previously stopped!
 		while (_keepRunning) {
 			// Treat manual commands in priority (those should be few and time-spaced anyway):
 			CommandResponseObject cmd = manualCommands.poll();

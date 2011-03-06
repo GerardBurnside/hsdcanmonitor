@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import android.util.Log;
 
 import com.ptc.android.hsdcanmonitor.CanInterface;
+import com.ptc.android.hsdcanmonitor.CoreEngine;
 
 /**
  * 
@@ -17,7 +18,7 @@ import com.ptc.android.hsdcanmonitor.CanInterface;
 public class CommandResponseObject {
     // Debugging
     protected static final String TAG = "HsdCanMonitor";
-    protected static final boolean D = true;
+    protected static final boolean D = CoreEngine.D;
 
     protected static final String UNLUCKY = "Timed Out!";
 

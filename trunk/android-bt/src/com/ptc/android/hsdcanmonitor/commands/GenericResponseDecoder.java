@@ -3,6 +3,8 @@ package com.ptc.android.hsdcanmonitor.commands;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
+import com.ptc.android.hsdcanmonitor.CoreEngine;
+
 import android.util.Pair;
 
 //import java.util.concurrent.ConcurrentHashMap;
@@ -10,7 +12,7 @@ import android.util.Pair;
 public abstract class GenericResponseDecoder {
     // Debugging
     protected static final String TAG = "HsdCanMonitor";
-    protected static final boolean D = true;
+    protected static final boolean D = CoreEngine.D;
 
 	public static final int STATE_OF_CHARGE = 0; // unit is %
 	public static final int HV_BATT_VOLT = 1;

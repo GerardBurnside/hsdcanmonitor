@@ -2,6 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
   	android:id="@+id/vehicle_view"
     android:layout_width="fill_parent"
+	android:background="#000000" 
     android:clipToPadding="true"
     android:layout_height="fill_parent" android:keepScreenOn="true" android:isScrollContainer="false">
     <TableLayout
@@ -9,12 +10,11 @@
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
       android:stretchColumns="0,1"
-      android:background="#dddddd" android:gravity="top|center" android:isScrollContainer="false">
+      android:gravity="top|center" android:isScrollContainer="false">
       <TableRow
         android:clipToPadding="true"
         android:paddingTop="0dip"
-      	android:layout_margin="0dip"
-        android:background="#000000">
+      	android:layout_margin="0dip">
       	<TextView
       	  android:text="0"
       	  android:id="@+id/ice_rpm"
@@ -29,22 +29,22 @@
       	<TextView
       	  android:id="@+id/hv_batt_amp"
       	  android:text="0"
-      	  android:gravity="bottom|left"
+      	  android:gravity="bottom|right"
       	  android:textSize="160px"/>
       	<TextView
       	  android:text="A"
       	  android:id="@+id/hv_batt_amp_lbl"
       	  android:layout_marginRight="30px"
-      	  android:gravity="bottom|right"/>
+      	  android:gravity="bottom|left"/>
       </TableRow>
     </TableLayout>
     <TableLayout
+      android:layout_marginBottom="60dip"
       android:layout_width="fill_parent"
       android:stretchColumns="1,3"
       android:layout_height="wrap_content"
-      android:background="#dddddd" android:layout_alignParentBottom="true">
-      <TableRow
-        android:background="#000000">
+      android:layout_alignParentBottom="true">
+      <TableRow>
       	<TextView
       	  android:text="10"
       	  android:id="@+id/ice_temp"
@@ -68,7 +68,7 @@
       	  android:id="@+id/mg1_rpm"
       	  android:text="0"
       	  android:gravity="bottom|left"
-      	  android:textSize="160px"/>
+      	  android:textSize="100px"/>
       	<TextView
       	  android:lines="2"
       	  android:text="rpm\n(MG1)"

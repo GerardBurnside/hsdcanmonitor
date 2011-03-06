@@ -23,7 +23,7 @@ import android.util.Pair;
 public class ResponseHandler implements Runnable {
     // Debugging
     private static final String TAG = "HsdCanMonitor";
-    private static final boolean D = true;
+    private static final boolean D = CoreEngine.D;
     // For gentle thread stopping:
 	protected volatile boolean _keepRunning = true;
     // Shall we log commands/responses or not:
@@ -65,6 +65,7 @@ public class ResponseHandler implements Runnable {
 
 	public void run() {
 		BlockingQueue<CommandResponseObject> responses = CanInterface.getInstance().getOutputQueue();
+		_keepRunning = true; // Required if it was previously stopped!
 		while (_keepRunning) {
 			try {
 				handleCommand(responses.take());
@@ -131,6 +132,10 @@ public class ResponseHandler implements Runnable {
 			if (b) {
 	        	if (CommandScheduler.getInstance()._runBackgroundCommands) {
 					startLoggingCommands();
+	        	}
+	        	else {
+	        		// The user wants to log, log only
+	        		// the manual commands or start monitoring?
 	        	}
 			}
 			else { // Close the file properly:

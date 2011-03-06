@@ -38,7 +38,7 @@ public class CanInterface implements Runnable {
 
     // Debugging
     private static final String TAG = "HsdCanMonitor";
-    private static final boolean D = true;
+    private static final boolean D = CoreEngine.D;
     // As suggested by Android's Javadoc, use this specific value:
 	protected static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	// The maximum amount of time that we are willing to wait for
@@ -138,7 +138,7 @@ public class CanInterface implements Runnable {
 				////////////////// DEBUG ONLY ////////////////////
 				if (_fakeDebugResponses) { // ONLY FOR EARLY DEBUGGING:
 					final String debugStr = //"Fake response!>"
-						"7E8102E610100000000\n7E82114655061530000\n7E822000000002A7B2A\n7E823FF6712A7253729\n7E8243C000000008049\n7E825BB8A7FFF000000\n7E826000008510A0000\n\n >";
+						"7E8102E610100000000\n7E82114655061530000\n7E822000000002A7B2A\n7E823FF6712A7253729\n7E8243C000000008049\n7E825BB8A7F80100000\n7E826000008510A0000\n\n >";
 					int indexDebug=0;
 					// timeout if random is true four times in a row!
 					if (_myRand.nextBoolean() && _myRand.nextBoolean()
@@ -209,6 +209,7 @@ public class CanInterface implements Runnable {
 	 * Note that the thread ends if we get disconnected (to save battery usage)!
 	 */
 	public void run() {
+		_keepRunning = true; // Required if it was previously stopped!
 		while (_keepRunning) {
 			try {
 				handleCommand(_inputQueue.take());
