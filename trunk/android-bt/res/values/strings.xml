@@ -13,6 +13,8 @@
     <string name="title_not_connected">disconnected !</string>
     <string name="msg_init_done">Starting Monitoring...</string>
     <string name="msg_init_failure">Problem during initialization!</string>
+    <string name="msg_logging_to_file">Logging to file started...</string>
+    <string name="msg_stop_logging_to_file">End of logging to file!</string>
 
     <!--  DeviceListActivity -->
     <string name="scanning">scanning for devices...</string>

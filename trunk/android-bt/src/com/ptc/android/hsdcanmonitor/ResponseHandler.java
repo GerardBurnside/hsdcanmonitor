@@ -197,6 +197,7 @@ public class ResponseHandler implements Runnable {
 		} catch (IOException e) {
 	        if(D) Log.e(TAG, "Failed to create file for logging!", e);
 		}
+		CoreEngine.askForToastMessage(R.string.msg_logging_to_file);
     }
     
     private void LogData(String msg) {
@@ -220,6 +221,7 @@ public class ResponseHandler implements Runnable {
 	        if(D) Log.e(TAG, "Failed to close log file!", e);
 		}
     	_currentLogFile = null;
+		CoreEngine.askForToastMessage(R.string.msg_stop_logging_to_file);
     }
 
 }
