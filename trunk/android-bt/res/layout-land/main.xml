@@ -59,7 +59,7 @@
       	  android:text="0"
       	  android:id="@+id/ice_torque"
       	  android:textSize="160px"
-      	  android:gravity="bottom|right"/>
+      	  android:gravity="bottom|center"/>
       	<TextView
       	  android:text="NM"
       	  android:id="@+id/ice_torque_lbl"
@@ -87,4 +87,5 @@
       	  android:text="°C(coolant)"
       	  android:id="@+id/coolant_temp_unit"
       	  android:gravity="top|left"/> -->
+
 </RelativeLayout>

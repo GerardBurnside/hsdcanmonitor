@@ -185,7 +185,7 @@ public class HsdConsoleActivity extends Activity {
             			msg.getData().getString(CoreEngine.RESPONSE));
             	break;
             case CoreEngine.MESSAGE_SWITCH_UI:
-                Intent liveIntent = new Intent(getApplicationContext(), HsdGraphicActivity.class);
+                Intent liveIntent = new Intent(getApplicationContext(), HsdLiveMonitoringActivity.class);
                 startActivity(liveIntent);
             	break;
             case CoreEngine.MESSAGE_FINISH:
