@@ -50,7 +50,7 @@ public class CanInterface implements Runnable {
 	// The output of the this thread is an unbounded blocking queue (so that the
 	// thread reading it is naturally blocked if there is nothing to read).
 	protected BlockingQueue<CommandResponseObject> _outputQueue;
-	protected volatile boolean _keepRunning = true;
+	protected volatile boolean _keepRunning = false; // false required for debug!
 	// Temporary buffer to collect the whole response until '>' is received:
 	//protected ArrayList<Byte> _buff = new ArrayList<Byte>();
 	protected CharBuffer _buff = CharBuffer.allocate(1024); // might be increased if needed.
@@ -62,6 +62,8 @@ public class CanInterface implements Runnable {
 	protected InputStream _in = null;
 	// outbound stream to the bluetooth device: 
 	protected OutputStream _out = null;
+	// This flag is used to avoid trying to connect several times at once:
+	protected volatile boolean _connecting = false;
 	// Because we want to be able to wait for at most MAX_COMMAND_RESPONSE_TIME,
 	// we need to use a separate Thread that can be interrupted if over MAX_COMMAND_RESPONSE_TIME.
 	protected ExecutorService _commandsProcessor = Executors.newSingleThreadExecutor();
@@ -267,19 +269,35 @@ public class CanInterface implements Runnable {
 	/**
 	 * Returns true if connect succeeded, false otherwise.
 	 */
-	public boolean connectToDevice(BluetoothDevice device) {
-		if (!_fakeDebugResponses) {
-			try {
-				_sock = device.createRfcommSocketToServiceRecord(MY_UUID);
-		        _sock.connect();
-		        _in = _sock.getInputStream();
-		        _out = _sock.getOutputStream();
-			} catch (IOException e) {
-				CoreEngine.setState(CoreEngine.STATE_NONE);
-				_keepRunning = false;
-				return false;
+	public synchronized boolean connectToDevice(BluetoothDevice device) {
+		_connecting = true;
+		try {
+			if (!_fakeDebugResponses) {
+				try {
+					_sock = device.createRfcommSocketToServiceRecord(MY_UUID);
+			        _sock.connect();
+			        _in = _sock.getInputStream();
+			        _out = _sock.getOutputStream();
+				} catch (IOException e) {
+					CoreEngine.setState(CoreEngine.STATE_NONE);
+					_keepRunning = false;
+					return false;
+				}
+			} // else fake that the connection succeeded !
+			else { // THE CODE BELOW IS FOR DEBUG ONLY:
+				// Simulate createSocket time:
+				try {
+					Thread.sleep(600);
+				}
+				catch (InterruptedException ie) {
+					return false;
+				}
+				return true;
 			}
-		} // else fake that the connection succeeded !
+		}
+		finally {
+			_connecting = false;
+		}
 
 		// Another thread might later tell us to stop!
 		_keepRunning = true;
@@ -289,6 +307,13 @@ public class CanInterface implements Runnable {
 	public boolean isConnected() {
 		// TODO improve this?
 		return _keepRunning && (_fakeDebugResponses || _out != null);
+	}
+
+	public boolean isConnecting() {
+		if (_connecting)
+			return true;
+		// Else, also return true if we're already connected:
+		return isConnected();
 	}
 
 }

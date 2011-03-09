@@ -91,11 +91,16 @@ public class CommandScheduler implements Runnable {
 
 	public void startBackgroundCommands() {
 		_runBackgroundCommands = true;
-		if (ResponseHandler.getInstance()._logBackgroundCommands) {
-			ResponseHandler.getInstance().startLoggingCommands();
-		}
-		sendInitCommands();
-		resetAndWakeUp();
+		// Run this in a separate Thread because this is called from UI:
+        new Thread() {
+        	public void run() {
+        		if (ResponseHandler.getInstance()._logBackgroundCommands) {
+        			ResponseHandler.getInstance().startLoggingCommands();
+        		}
+        		sendInitCommands();
+        		resetAndWakeUp();
+       	}
+        }.start();
 	}
 
 	public void stopBackgroundCommands() {

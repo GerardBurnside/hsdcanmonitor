@@ -2,6 +2,7 @@ package com.ptc.android.hsdcanmonitor.activities;
 
 import java.util.ArrayList;
 
+import com.ptc.android.hsdcanmonitor.CanInterface;
 import com.ptc.android.hsdcanmonitor.CommandScheduler;
 import com.ptc.android.hsdcanmonitor.CoreEngine;
 import com.ptc.android.hsdcanmonitor.R;
@@ -25,7 +26,7 @@ import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class HsdGraphicActivity extends Activity {
+public class HsdLiveMonitoringActivity extends Activity {
     // Debugging
     private static final String TAG = "HsdCanMonitor.UI";
     private static final boolean D = CoreEngine.D;
@@ -58,6 +59,9 @@ public class HsdGraphicActivity extends Activity {
         mMG1RPM = (TextView) findViewById(R.id.mg1_rpm);
         mMG2RPM = (TextView) findViewById(R.id.mg2_rpm);
         mIceTorque = (TextView) findViewById(R.id.ice_torque);
+
+        CoreEngine.setCurrentHandler(mHandler);
+        CoreEngine.startInit();
     }
 
     @Override
@@ -72,10 +76,16 @@ public class HsdGraphicActivity extends Activity {
         // This is called each time we switch to this activity: set ourselves as
         // the current handler of all UI-related requests from the CoreEngine:
         CoreEngine.setCurrentHandler(mHandler);
-        // Enforce that Background Monitoring is running:
-    	if (!CommandScheduler.getInstance().isBackgroundMonitoring()) {
-        	CommandScheduler.getInstance().startBackgroundCommands();
-    	}
+        if (CanInterface.getInstance().isConnected()) {
+            // Enforce that Background Monitoring is running:
+        	if (!CommandScheduler.getInstance().isBackgroundMonitoring()) {
+            	CommandScheduler.getInstance().startBackgroundCommands();
+        	}
+        }
+        else {
+        	if (!CanInterface.getInstance().isConnecting())
+        		CoreEngine.scanDevices();
+        }
     }
 
     @Override
@@ -101,6 +111,10 @@ public class HsdGraphicActivity extends Activity {
                 switch (msg.arg1) {
                 case CoreEngine.STATE_CONNECTED:
                 	// Other info (device name) will be received in a separate message.
+                    // Enforce that Background Monitoring is running:
+                	if (!CommandScheduler.getInstance().isBackgroundMonitoring()) {
+                    	CommandScheduler.getInstance().startBackgroundCommands();
+                	}
                     break;
                	case CoreEngine.STATE_CONNECTING:
                         Toast.makeText(getApplicationContext(), R.string.title_connecting,
@@ -109,10 +123,12 @@ public class HsdGraphicActivity extends Activity {
                	case CoreEngine.STATE_CONNECT_FAILED:
                     Toast.makeText(getApplicationContext(), R.string.title_connect_failed,
                             Toast.LENGTH_SHORT).show();
+                    CoreEngine.scanDevices();
                 break;
                	case CoreEngine.STATE_CONNECTION_LOST:
                     Toast.makeText(getApplicationContext(), R.string.title_connection_lost,
                             Toast.LENGTH_SHORT).show();
+                    CoreEngine.scanDevices();
                 break;
                 case CoreEngine.STATE_NONE:
                     Toast.makeText(getApplicationContext(), R.string.title_not_connected,
@@ -188,7 +204,7 @@ public class HsdGraphicActivity extends Activity {
                 	case GenericResponseDecoder.ICE_RPM:
                 		if (mIceRPM != null) {
                 			mIceRPM.setText(item.second);
-                			final String minRPM = "880";
+                			final String minRPM = "965";
                 			if (minRPM.length() >= item.second.length() 
                 				&& minRPM.compareTo(item.second) > 0) {
                 				mIceRPM.setTextColor(Color.DKGRAY);                				
@@ -225,25 +241,25 @@ public class HsdGraphicActivity extends Activity {
     protected synchronized void onPause() {
         super.onPause();
         if(D) Log.e(TAG, "- ON PAUSE -");
-        // Unless we're logging to file, stop asking for values:
-    	if (!ResponseHandler.getInstance().isLoggingEnabled()) {
-        	CommandScheduler.getInstance().stopBackgroundCommands();
-    	}
    }
 
     @Override
     public void onStop() {
         super.onStop();
         if(D) Log.e(TAG, "-- ON STOP --");
-        // Unconditional stop of background commands:
-    	CommandScheduler.getInstance().stopBackgroundCommands();
+        // Unless we're logging to file, stop asking for values:
+    	if (!ResponseHandler.getInstance().isLoggingEnabled()) {
+        	CommandScheduler.getInstance().stopBackgroundCommands();
+    	}
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        // Stop everything: Don't do this:
-        //CoreEngine.stopAllThreads();
+        // Unconditional stop of background commands:
+    	CommandScheduler.getInstance().stopBackgroundCommands();
+        // Stop everything:
+        //CoreEngine.stopAllThreads(); // Don't do this for now?
         if(D) Log.e(TAG, "--- ON DESTROY ---");
     }
 	

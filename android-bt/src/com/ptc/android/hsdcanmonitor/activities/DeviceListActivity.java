@@ -62,13 +62,22 @@ public class DeviceListActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if(D) Log.e(TAG, "- ON CREATE DeviceListActivity -");
 
         // Setup the window
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.device_list);
 
-        // Set result CANCELED incase the user backs out
+        // Set result CANCELED in case the user backs out
         setResult(Activity.RESULT_CANCELED);
+
+        // Register for broadcasts when a device is discovered
+        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+        this.registerReceiver(mReceiver, filter);
+
+        // Register for broadcasts when discovery has finished
+        filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
+        this.registerReceiver(mReceiver, filter);
 
         if (CoreEngine.Exiting) {
     		finish();
@@ -99,14 +108,6 @@ public class DeviceListActivity extends Activity {
         newDevicesListView.setAdapter(mNewDevicesArrayAdapter);
         newDevicesListView.setOnItemClickListener(mDeviceClickListener);
 
-        // Register for broadcasts when a device is discovered
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        this.registerReceiver(mReceiver, filter);
-
-        // Register for broadcasts when discovery has finished
-        filter = new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        this.registerReceiver(mReceiver, filter);
-
         // Get the local Bluetooth adapter
         mBtAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -128,9 +129,10 @@ public class DeviceListActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        if(D) Log.e(TAG, "- ON DESTROY DeviceListActivity -");
 
         // Make sure we're not doing discovery anymore
-        if (mBtAdapter != null) {
+        if (mBtAdapter != null && mBtAdapter.isDiscovering()) {
             mBtAdapter.cancelDiscovery();
         }
 

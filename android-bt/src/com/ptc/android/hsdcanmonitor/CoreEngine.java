@@ -57,6 +57,8 @@ public final class CoreEngine {
     public static final String CLASS_NAME = "class_name";
     // Local Bluetooth adapter
     private static BluetoothAdapter _bluetoothAdapter = null;
+    private static volatile boolean _scanningDevices = false;
+
     // Parent Activity:
     private static Handler _parentHandler;
 
@@ -92,16 +94,21 @@ public final class CoreEngine {
 	}
 
 	public static void resumeInit() {
-        // Inform the UI that we are not connected yet:
-        setState(STATE_NONE);
-		// Bluetooth is now up and running:
-		scanDevices(); // TODO connect to last known device instead.
-		// TODO Should try connecting to the previously connected device right away !
+		if (!CanInterface.getInstance().isConnected()) {
+	        // Inform the UI that we are not connected yet:
+	        setState(STATE_NONE);
+			// Bluetooth is now up and running:
+			scanDevices(); // TODO connect to last known device instead.
+			// TODO Should try connecting to the previously connected device right away !
+		}
 	}
 	
-	public static void scanDevices() {
-		Message msg = _parentHandler.obtainMessage(MESSAGE_SCAN_DEVICES);
-        _parentHandler.sendMessage(msg);
+	public static synchronized void scanDevices() {
+		if ((!_scanningDevices) && (!CanInterface.getInstance().isConnecting())) {
+			_scanningDevices = true;
+			Message msg = _parentHandler.obtainMessage(MESSAGE_SCAN_DEVICES);
+	        _parentHandler.sendMessage(msg);
+		}
 	}
 	
 	public static void connectToDevice(final String address) {
@@ -109,8 +116,8 @@ public final class CoreEngine {
         // Always cancel discovery because it will slow down a connection
         _bluetoothAdapter.cancelDiscovery();
 		// Connect to the device in a separate Thread because a blocking call is made:
-        new Thread() {
-        	public void run() {
+        //new Thread() {
+        //	public void run() {
         		BluetoothDevice device = _bluetoothAdapter.getRemoteDevice(address);
         		if (CanInterface.getInstance().connectToDevice(device)) {
         			// True means success!
@@ -123,9 +130,10 @@ public final class CoreEngine {
 
         		}
         		else setState(STATE_CONNECT_FAILED);
-
-        	}
-        }.start();
+        		// In both cases:
+        		_scanningDevices = false;
+        //	}
+        //}.start();
 	}
 
     /**
@@ -176,6 +184,7 @@ public final class CoreEngine {
 		CanInterface.getInstance().stop();
 		CommandScheduler.getInstance().stop();
 		ResponseHandler.getInstance().stop();
+		/* Let's try to just not kill the threads and see if we still have issues:?*/
 		// Then interrupt the threads:
 		if (_interface != null)
 			_interface.interrupt();
@@ -283,7 +292,10 @@ public final class CoreEngine {
         switch (item.getItemId()) {
         case R.id.scan:
             // Launch the DeviceListActivity to see devices and do scan
-        	scanDevices();
+        	// DO not call scanDevices() because we're bypassing checks!
+			_scanningDevices = true;
+			msg = _parentHandler.obtainMessage(MESSAGE_SCAN_DEVICES);
+	        _parentHandler.sendMessage(msg);
             return true;
         case R.id.reverse_beep_remove:
         	sendManualCommand("AT SH 7C0");
@@ -336,13 +348,14 @@ public final class CoreEngine {
 	        _parentHandler.sendMessage(msg);
 	        return true;
 	    case R.id.exit:
+	    	/*** Disabled because DeviceListActivity crashes on subsequent start:*/
 	    	// Let all Activities know that they should not be displayed:
 	    	Exiting = true;
 	    	stopAllThreads();
 	    	msg = _parentHandler.obtainMessage(MESSAGE_FINISH);
 	    	_parentHandler.sendMessage(msg);
 	    	// Because Android will not let us die in peace,
-	    	// let's allow the acitivities to be created again later:
+	    	// let's allow the activities to be created again later:
 	    	new Thread() {
 	    		@Override
 	    		public void run() {
@@ -354,7 +367,7 @@ public final class CoreEngine {
 					}
 	    			Exiting = false;
 	    		}
-	    	};
+	    	}.start();
 	        return true;
         }
         return false;
@@ -373,6 +386,14 @@ public final class CoreEngine {
                 // Get the BluetoothDevice object:
                 connectToDevice(address);
             }
+            else if (resultCode == Activity.RESULT_CANCELED) {
+            	if (!CanInterface.getInstance().isConnected()) {
+            		// The user probably wants to leave the app! Let him!
+            		Message msg = _parentHandler.obtainMessage(MESSAGE_FINISH);
+        	    	_parentHandler.sendMessage(msg);
+            	}
+            }
+            _scanningDevices = false;
             break;
         case REQUEST_ENABLE_BT:
             // When the request to enable Bluetooth returns
