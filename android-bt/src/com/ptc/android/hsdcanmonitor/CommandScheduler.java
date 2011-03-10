@@ -4,14 +4,16 @@ import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import com.ptc.android.hsdcanmonitor.commands.BackgroundCommand;
+import android.util.Log;
+
+import com.ptc.android.hsdcanmonitor.commands.LiveMonitoringCommand;
 import com.ptc.android.hsdcanmonitor.commands.CommandResponseObject;
 import com.ptc.android.hsdcanmonitor.commands.InitCommand;
 
 public class CommandScheduler implements Runnable {
 	protected volatile boolean _keepRunning = true;
 	// Right now let's not monitor at first, later change it to true:
-	protected volatile boolean _runBackgroundCommands = false;
+	protected volatile boolean _runLiveMonitoringCommands = false;
 	// Counter used to cycle through background commands:
 	private volatile int _counter = 0;
 	// Counter of the number of cycles performed:
@@ -22,47 +24,14 @@ public class CommandScheduler implements Runnable {
 	// The concurrentLinkedQueue is overkill here, but it shouldn't hurt:
 	protected ConcurrentLinkedQueue<CommandResponseObject> manualCommands = new ConcurrentLinkedQueue<CommandResponseObject>();
 	protected BlockingQueue<CommandResponseObject> _input;
-	protected ArrayList<BackgroundCommand> _backgroundCommands = new ArrayList<BackgroundCommand>();
-    // List of requests: // TODO read them from a file instead !!!
-    private final String[] mInitCommandList = {
-    	"ATI", "ATSP6", "ATE0", "ATH1", "ATL0", "ATS0"
-    };
-    private final String[] mBackgroundCommandsList = {
-    	"AT SH 7E0",
-    		"013C3E", // periodicity 100
-    		"21013C49",
-    	"AT SH 7E2", // periodicity 1
-    		"2161626768748A", // periodicity 1
-    		"210170718798", // periodicity 10 => HAS TO BE MULTIPLE OF "AT SH"
-    	"AT SH 7C0", // periodicity 1000
-    		"2129" // periodicity 1000
-    };
+	// Store the name of the latest parsed commands filename:
+	protected String _currentCommandsFilename = null;
+	// The current set of live monitoring commands:
+	protected ArrayList<LiveMonitoringCommand> _liveMonitoringCommands = new ArrayList<LiveMonitoringCommand>();
     
     private CommandScheduler() {
     	// Private for singleton implem.
 		_input = CanInterface.getInstance().getInputQueue();
-		// Build an Array of BackgroundCommands to cycle through
-		// TODO: read them from an xml file instead:
-		for (String cmdStr : mBackgroundCommandsList) {
-			// Force to start over if an "AT" command fails:
-			boolean resetIfFails = cmdStr.startsWith("AT SH");
-			BackgroundCommand newCmd = new BackgroundCommand(cmdStr, resetIfFails);
-			// ******************* Hardcoded tests for peridocity:
-			if ("013C3E".equals(cmdStr))
-				newCmd.periodicity = 100;
-			else if ("AT SH 7E2".equals(cmdStr))
-				newCmd.periodicity = 1;
-			else if ("2161626768748A".equals(cmdStr))
-				newCmd.periodicity = 1;
-			else if ("210170718798".equals(cmdStr))
-				newCmd.periodicity = 10;
-			else if ("AT SH 7C0".equals(cmdStr))
-				newCmd.periodicity = 1000;
-			else if ("2129".equals(cmdStr))
-				newCmd.periodicity = 1000;
-			// ******************** End hardcoded tests.
-			_backgroundCommands.add(newCmd);
-		}
     }
 	/**
 	* Singleton implementation:
@@ -89,29 +58,31 @@ public class CommandScheduler implements Runnable {
 		resetAndWakeUp();
 	}
 
-	public void startBackgroundCommands() {
-		_runBackgroundCommands = true;
+	public void startLiveMonitoringCommands(final boolean doInit) {
+		_runLiveMonitoringCommands = true;
 		// Run this in a separate Thread because this is called from UI:
         new Thread() {
         	public void run() {
-        		if (ResponseHandler.getInstance()._logBackgroundCommands) {
+        		if (ResponseHandler.getInstance()._logLiveMonitoringCommands) {
         			ResponseHandler.getInstance().startLoggingCommands();
         		}
-        		sendInitCommands();
+        		if (doInit) {
+            		sendInitCommands();
+        		}
         		resetAndWakeUp();
        	}
         }.start();
 	}
 
-	public void stopBackgroundCommands() {
+	public void stopLiveMonitoringCommands() {
 		// We will stop after the current command:
-		_runBackgroundCommands = false;
+		_runLiveMonitoringCommands = false;
 		// By stopping now, we're losing the last command, is this a big deal?
 		ResponseHandler.getInstance().endLoggingCommands();
 	}
 
 	public boolean isBackgroundMonitoring() {
-		return _runBackgroundCommands;
+		return _runLiveMonitoringCommands;
 	}
 
 	public void resetAndWakeUp() {
@@ -123,12 +94,11 @@ public class CommandScheduler implements Runnable {
 	}
 	
 	private int incrementCommandCounter() {
-		if (_counter >= _backgroundCommands.size()) {
+		if (_counter >= _liveMonitoringCommands.size()) {
 			_counter = 0; // cycle back at the beginning!
 			if (++_cyclesNumber > MAX_CYCLES_NUMBER) {
 				_cyclesNumber = 1;
 			}
-			// Test DEBUG: Only one cycle: stopBackgroundCommands();
 		}
 		return _counter++; // returned value is not incremented on purpose!
 	}
@@ -141,12 +111,12 @@ public class CommandScheduler implements Runnable {
 			CommandResponseObject cmd = manualCommands.poll();
 			if (cmd == null) {
 				// No manual cmd to send? let's check for background ones:
-				if (_runBackgroundCommands) {
-					BackgroundCommand bkgCmd;
+				if (_runLiveMonitoringCommands && _liveMonitoringCommands.size() > 0) {
+					LiveMonitoringCommand bkgCmd;
 					synchronized (_syncObj) {
 						// Get the first command that is supposed to run at that time:
 						do {
-							bkgCmd = _backgroundCommands.get(incrementCommandCounter());
+							bkgCmd = _liveMonitoringCommands.get(incrementCommandCounter());
 						}
 						while (_cyclesNumber % bkgCmd.periodicity != 0);
 						// TODO: we should check that the previous command was "AT SH xxx" if needed!
@@ -188,13 +158,109 @@ public class CommandScheduler implements Runnable {
 	}
 
 	protected void sendInitCommands() {
-		// TODO Auto-generated method stub
-		for (int k=0; k<mInitCommandList.length; k++) {
-			CommandResponseObject cmd = new InitCommand(mInitCommandList[k]);
-			feedInterface(cmd);
-		}
-		// TODO: We should actually enforce successful responses to init commands:
-		CoreEngine.askForToastMessage(R.string.msg_init_done);
+		// TODO: Read once from init_commands.xml instead of hard-coded!
+		InitCommand cmd = new InitCommand("ATI");
+		feedInterface(cmd);
+		cmd = new InitCommand("ATSP6","OK");
+		feedInterface(cmd);
+		cmd = new InitCommand("ATE0","OK");
+		feedInterface(cmd);
+		cmd = new InitCommand("ATH1","OK");
+		feedInterface(cmd);
+		cmd = new InitCommand("ATL0","OK");
+		feedInterface(cmd);
+		cmd = new InitCommand("ATS0","OK"); // Fail if not ok?
+		feedInterface(cmd);
+		cmd = new InitCommand("ATSH 7E2","OK");
+		feedInterface(cmd);
+		cmd = new InitCommand("21C3",true); // Special init command for HSD detection!
+		cmd.response_decoder_map.put("7EA03","2ZR_FXE.xml");
+		cmd.response_decoder_map.put("7EA10","1NZ_FXE.xml");
+		feedInterface(cmd);
 	}
 
+	public void setMonitoringCommands(String commands_filename) {
+		// TODO Parse the actual xml file instead of hardcoding here !!!
+		if (commands_filename.equals(_currentCommandsFilename)) {
+			return; // Nothing to do.
+		}
+		_liveMonitoringCommands.clear();
+		LiveMonitoringCommand newCmd;
+		if ("2ZR_FXE.xml".equals(commands_filename)) {
+			// TODO: Load the decoder classname from the xml file!
+			LiveMonitoringCommand.loadDecoder("com.ptc.android.hsdcanmonitor.commands.Decoder_2ZR_FXE");
+			// Build an Array of LiveMonitoringCommands to cycle through
+			// TODO: read them from the xml file instead:
+			newCmd = new LiveMonitoringCommand("AT SH 7E0", true);
+			_liveMonitoringCommands.add(newCmd);
+			newCmd = new LiveMonitoringCommand("013C3E", false);
+			newCmd.periodicity = 100;
+			_liveMonitoringCommands.add(newCmd);
+			newCmd = new LiveMonitoringCommand("21013C49", false);
+			newCmd.periodicity = 1;
+			_liveMonitoringCommands.add(newCmd);
+			newCmd = new LiveMonitoringCommand("AT SH 7E2", false);
+			newCmd.periodicity = 1;
+			_liveMonitoringCommands.add(newCmd);
+			newCmd = new LiveMonitoringCommand("2161626768748A", false);
+			newCmd.periodicity = 1;
+			_liveMonitoringCommands.add(newCmd);
+			newCmd = new LiveMonitoringCommand("210170718798", false);
+			newCmd.periodicity = 10;
+			_liveMonitoringCommands.add(newCmd);
+			newCmd = new LiveMonitoringCommand("AT SH 7C0", false);
+			newCmd.periodicity = 1000;
+			_liveMonitoringCommands.add(newCmd);
+			newCmd = new LiveMonitoringCommand("2129", false);
+			newCmd.periodicity = 1000;
+			_liveMonitoringCommands.add(newCmd);
+	    	//TODO: Friction Brake Sensor: AT SH 07B0 + 2107
+		}
+		else if ("1NZ_FXE.xml".equals(commands_filename)) {
+			// TODO: Load the decoder classname from the xml file!
+			LiveMonitoringCommand.loadDecoder("com.ptc.android.hsdcanmonitor.commands.Decoder_1NZ_FXE");
+			// Build an Array of LiveMonitoringCommands to cycle through
+			// TODO: read them from the xml file instead:
+			
+			// TODO: ADAPT FOR PII !!!!!!!!!!!!!!!!!!!!!!!!!
+			
+			newCmd = new LiveMonitoringCommand("AT SH 7E0", true);
+			_liveMonitoringCommands.add(newCmd);
+			newCmd = new LiveMonitoringCommand("013C3E", false);
+			newCmd.periodicity = 100;
+			_liveMonitoringCommands.add(newCmd);
+			newCmd = new LiveMonitoringCommand("21013C49", false);
+			newCmd.periodicity = 1;
+			_liveMonitoringCommands.add(newCmd);
+			newCmd = new LiveMonitoringCommand("AT SH 7E2", false);
+			newCmd.periodicity = 1;
+			_liveMonitoringCommands.add(newCmd);
+			newCmd = new LiveMonitoringCommand("2161626768748A", false);
+			newCmd.periodicity = 1;
+			_liveMonitoringCommands.add(newCmd);
+			newCmd = new LiveMonitoringCommand("210170718798", false);
+			newCmd.periodicity = 10;
+			_liveMonitoringCommands.add(newCmd);
+			newCmd = new LiveMonitoringCommand("AT SH 7C0", false);
+			newCmd.periodicity = 1000;
+			_liveMonitoringCommands.add(newCmd);
+			newCmd = new LiveMonitoringCommand("2129", false);
+			newCmd.periodicity = 1000;
+			_liveMonitoringCommands.add(newCmd);
+		}
+		else if ("hv_batt_PIII.xml".equals(commands_filename)) {
+			// TODO: Load the decoder classname from the xml file!
+			LiveMonitoringCommand.loadDecoder("com.ptc.android.hsdcanmonitor.commands.Decoder_HvBatt_2ZR_FXE");			
+			// Build an Array of LiveMonitoringCommands to cycle through
+			// TODO: read them from the xml file instead:
+			manualCommands.add(new LiveMonitoringCommand("AT SH 7E2", true));
+			// Cycle on a single command:
+			newCmd = new LiveMonitoringCommand("2181", false);
+			_liveMonitoringCommands.add(newCmd);
+		}
+		else if (CoreEngine.D) Log.e(CoreEngine.TAG, "Unable to parse file: " + commands_filename);
+		// Cache the latest xml file read:
+		_currentCommandsFilename = commands_filename;
+		resetAndWakeUp();
+	}	
 }

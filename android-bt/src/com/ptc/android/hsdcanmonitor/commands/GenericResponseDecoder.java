@@ -60,6 +60,22 @@ public abstract class GenericResponseDecoder {
 	Speed	kM/H	 
 	Distance	kM
 	 */
+	public static final int BATT_VOLT_01 = 1001;
+	public static final int BATT_VOLT_02 = 1002;
+	public static final int BATT_VOLT_03 = 1003;
+	public static final int BATT_VOLT_04 = 1004;
+	public static final int BATT_VOLT_05 = 1005;
+	public static final int BATT_VOLT_06 = 1006;
+	public static final int BATT_VOLT_07 = 1007;
+	public static final int BATT_VOLT_08 = 1008;
+	public static final int BATT_VOLT_09 = 1009;
+	public static final int BATT_VOLT_10 = 1010;
+	public static final int BATT_VOLT_11 = 1011;
+	public static final int BATT_VOLT_12 = 1012;
+	public static final int BATT_VOLT_13 = 1013;
+	public static final int BATT_VOLT_14 = 1014;
+
+	
 	// Variable used to store the command responses (GC optimization):
 	protected ByteBuffer _formattedBytesResponse = ByteBuffer.allocate(1024);
 
@@ -70,6 +86,6 @@ public abstract class GenericResponseDecoder {
 	 * @param ecu The ECU to which the command was sent
 	 * @return A list of Pair<id,value> for the decoded values
 	 */
-	public abstract ArrayList<Pair<Integer, String>> decodeResponse(CommandResponseObject cmd, String ecu);
+	public abstract ArrayList<Pair<Integer, String>> decodeResponse(CommandResponseObject cmd);
 	
 }

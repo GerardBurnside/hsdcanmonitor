@@ -26,7 +26,7 @@ import android.view.MenuItem;
  */
 public final class CoreEngine {
     // Debugging
-    private static final String TAG = "HsdCanMonitor";
+    public static final String TAG = "HsdCanMonitor";
     public static final boolean D = true;
     // Intent request codes 
     public static final int REQUEST_CONNECT_DEVICE = 1;
@@ -48,8 +48,10 @@ public final class CoreEngine {
     public static final int MESSAGE_UI_UPDATE = 8;
     public static final int MESSAGE_SWITCH_UI = 9;
     public static final int MESSAGE_SHOW_HV_DETAIL = 10;
+    public static final int MESSAGE_TOAST_WITH_PARAM = 11;
     // Message keys:
-    public static final String TOAST = "toast";
+    public static final String TOAST_MSG_ID = "toast_msg_id";
+    public static final String TOAST_PARAM = "param";
     public static final String DEVICE_NAME = "dev_name";
     public static final String RESPONSE = "response";
     public static final String DURATION = "duration";
@@ -216,10 +218,24 @@ public final class CoreEngine {
 	 * 
 	 * @param resource_id the id of the string in values/strings.xml
 	 */
-	protected static void askForToastMessage(int resource_id) {
+	public static void askForToastMessage(int resource_id) {
     	Message msg = _parentHandler.obtainMessage(MESSAGE_TOAST);
         Bundle bundle = new Bundle();
-        bundle.putInt(TOAST, resource_id);
+        bundle.putInt(TOAST_MSG_ID, resource_id);
+        msg.setData(bundle);
+    	_parentHandler.sendMessage(msg);
+	}
+	/**
+	 * Same as previous but with an additional text param.
+	 * 
+	 * @param resource_id the id of the string in values/strings.xml
+	 * @param additionalString to be concatenated to the message.
+	 */
+	public static void askForToastMessageWithParam(int resource_id, String param) {
+    	Message msg = _parentHandler.obtainMessage(MESSAGE_TOAST_WITH_PARAM);
+        Bundle bundle = new Bundle();
+        bundle.putInt(TOAST_MSG_ID, resource_id);
+        bundle.putString(TOAST_PARAM, param);
         msg.setData(bundle);
     	_parentHandler.sendMessage(msg);
 	}

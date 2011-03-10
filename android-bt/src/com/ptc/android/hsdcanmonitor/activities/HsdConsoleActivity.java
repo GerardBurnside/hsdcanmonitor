@@ -154,7 +154,7 @@ public class HsdConsoleActivity extends Activity {
                 	mTitle.setText(R.string.title_connection_lost);
                 break;
                 case CoreEngine.STATE_NONE:
-                    mTitle.setText(R.string.title_not_connected);
+                    mTitle.setText(R.string.msg_not_connected);
                     break;
 				}
                 break;
@@ -162,11 +162,11 @@ public class HsdConsoleActivity extends Activity {
                 String connectedDeviceName = msg.getData().getString(CoreEngine.DEVICE_NAME);
                 Toast.makeText(getApplicationContext(), "Connected to "
                                + connectedDeviceName, Toast.LENGTH_SHORT).show();
-                mTitle.setText(R.string.title_connected_to);
+                mTitle.setText(R.string.msg_connected_to);
                 mTitle.append(connectedDeviceName);
                 break;
             case CoreEngine.MESSAGE_TOAST:
-                Toast.makeText(getApplicationContext(), msg.getData().getInt(CoreEngine.TOAST),
+                Toast.makeText(getApplicationContext(), msg.getData().getInt(CoreEngine.TOAST_MSG_ID),
                                Toast.LENGTH_SHORT).show();
                 break;
             case CoreEngine.MESSAGE_REQUEST_BT:

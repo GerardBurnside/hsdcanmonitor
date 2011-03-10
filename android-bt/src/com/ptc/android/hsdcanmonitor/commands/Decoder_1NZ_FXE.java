@@ -19,7 +19,7 @@ public class Decoder_1NZ_FXE extends GenericResponseDecoder {
 	// TODO This is currently PIII stuff !!!
 	
 	@Override
-	public ArrayList<Pair<Integer, String>> decodeResponse(CommandResponseObject cmd, String ecu) {
+	public ArrayList<Pair<Integer, String>> decodeResponse(CommandResponseObject cmd) {
 		ArrayList<Pair<Integer, String>> res = null;
 		// In order to avoid Garbage collection, let's re-use
 		// the same buffer for all commands; the returned len
