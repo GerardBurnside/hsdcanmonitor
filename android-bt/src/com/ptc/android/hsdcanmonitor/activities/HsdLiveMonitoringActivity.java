@@ -83,8 +83,19 @@ public class HsdLiveMonitoringActivity extends Activity {
         	}
         }
         else {
-        	if (!CanInterface.getInstance().isConnecting())
-        		CoreEngine.scanDevices();
+        	// Let's wait briefly then launch the BT discovery if needed:
+        	new Thread() {
+        		public void run() {
+        			try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						// Ignore
+						if (D) Log.e(TAG, "Interrupted while waiting before BT discovery...");
+					}
+                	if (!CanInterface.getInstance().isConnecting())
+                		CoreEngine.scanDevices();
+        		}
+        	}.start();
         }
     }
 
