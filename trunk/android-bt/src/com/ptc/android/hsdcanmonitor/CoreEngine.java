@@ -116,8 +116,8 @@ public final class CoreEngine {
         // Always cancel discovery because it will slow down a connection
         _bluetoothAdapter.cancelDiscovery();
 		// Connect to the device in a separate Thread because a blocking call is made:
-        //new Thread() {
-        //	public void run() {
+        new Thread() {
+        	public void run() {
         		BluetoothDevice device = _bluetoothAdapter.getRemoteDevice(address);
         		if (CanInterface.getInstance().connectToDevice(device)) {
         			// True means success!
@@ -132,8 +132,8 @@ public final class CoreEngine {
         		else setState(STATE_CONNECT_FAILED);
         		// In both cases:
         		_scanningDevices = false;
-        //	}
-        //}.start();
+        	}
+        }.start();
 	}
 
     /**
@@ -184,7 +184,6 @@ public final class CoreEngine {
 		CanInterface.getInstance().stop();
 		CommandScheduler.getInstance().stop();
 		ResponseHandler.getInstance().stop();
-		/* Let's try to just not kill the threads and see if we still have issues:?*/
 		// Then interrupt the threads:
 		if (_interface != null)
 			_interface.interrupt();

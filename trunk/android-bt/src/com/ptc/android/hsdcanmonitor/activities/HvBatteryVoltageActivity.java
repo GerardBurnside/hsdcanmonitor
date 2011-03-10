@@ -169,7 +169,7 @@ public class HvBatteryVoltageActivity extends Activity {
 
             	break;
             case CoreEngine.MESSAGE_SWITCH_UI:
-                Intent liveIntent = new Intent(getApplicationContext(), HsdLiveMonitoringActivity.class);
+                Intent liveIntent = new Intent(getApplicationContext(), HsdConsoleActivity.class);
                 startActivity(liveIntent);
             	break;
             case CoreEngine.MESSAGE_FINISH:
