@@ -17,7 +17,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import com.ptc.android.hsdcanmonitor.commands.BackgroundCommand;
+import com.ptc.android.hsdcanmonitor.commands.LiveMonitoringCommand;
 import com.ptc.android.hsdcanmonitor.commands.CommandResponseObject;
 
 import android.bluetooth.BluetoothDevice;
@@ -140,7 +140,7 @@ public class CanInterface implements Runnable {
 				////////////////// DEBUG ONLY ////////////////////
 				if (_fakeDebugResponses) { // ONLY FOR EARLY DEBUGGING:
 					final String debugStr = //"Fake response!>"
-						"7E8102E610100000000\n7E82114655061530000\n7E822000000002A7B2A\n7E823FF6712A7253729\n7E8243C000000008049\n7E825BB8A7F80100000\n7E826000008510A0000\n\n >";
+						"7EA032E610100000000\n7E82114655061530000\n7E822000000002A7B2A\n7E823FF6712A7253729\n7E8243C000000008049\n7E825BB8A7F80100000\n7E826000008510A0000\nOK\n>";
 					int indexDebug=0;
 					// timeout if random is true four times in a row!
 					if (_myRand.nextBoolean() && _myRand.nextBoolean()
@@ -227,7 +227,7 @@ public class CanInterface implements Runnable {
 			_currentRequest = request;
 			if (_dropNextBackgroundCommand) {
 				_dropNextBackgroundCommand = false;
-				if (_currentRequest instanceof BackgroundCommand)
+				if (_currentRequest instanceof LiveMonitoringCommand)
 					return; // Simply ignore it!
 			}
 			Future<Boolean> result = _commandsProcessor.submit(_singleCommandExecution);
@@ -251,8 +251,8 @@ public class CanInterface implements Runnable {
 		// Finally, send the response to the ResponseHandler Thread:
 		_outputQueue.add(_currentRequest);
 		// Post-processing to check if we need to skip a command already in the loop:
-		if (_currentRequest instanceof BackgroundCommand) {
-			BackgroundCommand bkgCmd = (BackgroundCommand) _currentRequest;
+		if (_currentRequest instanceof LiveMonitoringCommand) {
+			LiveMonitoringCommand bkgCmd = (LiveMonitoringCommand) _currentRequest;
 			if (bkgCmd.resetOnFailure && bkgCmd.hasTimedOut())
 				_dropNextBackgroundCommand = true;
 		}

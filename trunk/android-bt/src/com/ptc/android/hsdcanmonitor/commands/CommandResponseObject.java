@@ -22,6 +22,9 @@ public class CommandResponseObject {
 
     protected static final String UNLUCKY = "Timed Out!";
 
+	// Global flag to know whether the device supports the ATS0 command (i.e. can it remove spaces or not):
+	public static boolean ats0_supported = true; // Assume true by default.
+
     // Possible specific timeout for a command that might take longer than usual:
     public long specific_timeout_value = CanInterface.DEFAULT_RESPONSE_TIME_OUT;
     // Optional for prettier code in the decoder:
@@ -91,16 +94,21 @@ public class CommandResponseObject {
 			try {
 				// Reset the buffer:
 				response.rewind();
+				
+				final int frameLength = ats0_supported? 20 : 28;
+				final int initialIndent = ats0_supported? 5 : 7; 
+				final int step = ats0_supported? 2 : 3;
+				
 				// First, remove parasitic '\r':
 				//String temp = getResponseString().replaceAll("\\r", ""); // No longer needed thanks to ATL0
 
 				// split("\n") would be easier to read but feeds the GC...
 				// each frame should contain exactly 20 char: 3+ 8*2 + "\n"
-				int nf=_rawStringResponse.length()/ 20; // nf = number of frames
+				int nf=_rawStringResponse.length()/ frameLength; // nf = number of frames
 				for (int nl=0; nl<nf; nl++) {           // nl= frame number
-					int start=nl*20+5;                  // start with the 6th char
+					int start=nl*frameLength+initialIndent; // start with the 6th or 8th char
 					for(int bb=0;bb<7;bb++){            // bb est le couple à traiter
-						int pos = start + bb*2;         // pos est la position dans la chaine du couple à traiter
+						int pos = start + bb*step;         // pos est la position dans la chaine du couple à traiter
 						response.put((byte) ((Character.digit(_rawStringResponse.charAt(pos), 16) << 4)
 											+ Character.digit(_rawStringResponse.charAt(pos+1), 16)));
 					}
@@ -133,6 +141,12 @@ public class CommandResponseObject {
 	}
 	public boolean hasTimedOut() {
 		return _timedOut;
+	}
+	
+	public void analyzeResponse() {
+		// MOSTLY IMPLEMENTED IN SUBCLASSES !!!
+		// Except for Manual Commands:
+		notifySender();
 	}
 
 	/**

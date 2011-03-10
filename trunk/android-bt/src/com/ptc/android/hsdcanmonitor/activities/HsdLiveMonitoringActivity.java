@@ -79,7 +79,7 @@ public class HsdLiveMonitoringActivity extends Activity {
         if (CanInterface.getInstance().isConnected()) {
             // Enforce that Background Monitoring is running:
         	if (!CommandScheduler.getInstance().isBackgroundMonitoring()) {
-            	CommandScheduler.getInstance().startBackgroundCommands();
+            	CommandScheduler.getInstance().startLiveMonitoringCommands(true);
         	}
         }
         else {
@@ -124,7 +124,7 @@ public class HsdLiveMonitoringActivity extends Activity {
                 	// Other info (device name) will be received in a separate message.
                     // Enforce that Background Monitoring is running:
                 	if (!CommandScheduler.getInstance().isBackgroundMonitoring()) {
-                    	CommandScheduler.getInstance().startBackgroundCommands();
+                    	CommandScheduler.getInstance().startLiveMonitoringCommands(true);
                 	}
                     break;
                	case CoreEngine.STATE_CONNECTING:
@@ -142,7 +142,7 @@ public class HsdLiveMonitoringActivity extends Activity {
                     CoreEngine.scanDevices();
                 break;
                 case CoreEngine.STATE_NONE:
-                    Toast.makeText(getApplicationContext(), R.string.title_not_connected,
+                    Toast.makeText(getApplicationContext(), R.string.msg_not_connected,
                             Toast.LENGTH_SHORT).show();
                     break;
 				}
@@ -153,7 +153,13 @@ public class HsdLiveMonitoringActivity extends Activity {
                                + connectedDeviceName, Toast.LENGTH_SHORT).show();
                 break;
             case CoreEngine.MESSAGE_TOAST:
-                Toast.makeText(getApplicationContext(), msg.getData().getInt(CoreEngine.TOAST),
+                Toast.makeText(getApplicationContext(), msg.getData().getInt(CoreEngine.TOAST_MSG_ID),
+                               Toast.LENGTH_SHORT).show();
+                break;
+            case CoreEngine.MESSAGE_TOAST_WITH_PARAM:
+                String param = msg.getData().getString(CoreEngine.TOAST_PARAM);
+                CharSequence txt = getText(msg.getData().getInt(CoreEngine.TOAST_MSG_ID));
+                Toast.makeText(getApplicationContext(), txt + param,
                                Toast.LENGTH_SHORT).show();
                 break;
             case CoreEngine.MESSAGE_REQUEST_BT:
@@ -260,7 +266,7 @@ public class HsdLiveMonitoringActivity extends Activity {
         if(D) Log.e(TAG, "-- ON STOP --");
         // Unless we're logging to file, stop asking for values:
     	if (!ResponseHandler.getInstance().isLoggingEnabled()) {
-        	CommandScheduler.getInstance().stopBackgroundCommands();
+        	CommandScheduler.getInstance().stopLiveMonitoringCommands();
     	}
     }
 
@@ -268,7 +274,7 @@ public class HsdLiveMonitoringActivity extends Activity {
     public void onDestroy() {
         super.onDestroy();
         // Unconditional stop of background commands:
-    	CommandScheduler.getInstance().stopBackgroundCommands();
+    	CommandScheduler.getInstance().stopLiveMonitoringCommands();
         // Stop everything:
         //CoreEngine.stopAllThreads(); // Don't do this for now?
         if(D) Log.e(TAG, "--- ON DESTROY ---");
