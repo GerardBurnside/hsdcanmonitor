@@ -75,6 +75,7 @@ public class InitCommand extends CommandResponseObject {
 				// Bingo, let's load the correct set of commands for the CommandScheduler
 				// (which will in turn load the corresponding decoder class):
 				CommandScheduler.getInstance().setMonitoringCommands(response_decoder_map.get(respStartsWith));
+				return;
 			}
 		}
 		// TODO: Load a non HSD decoder class (RPM, temp, etc.) by default?
