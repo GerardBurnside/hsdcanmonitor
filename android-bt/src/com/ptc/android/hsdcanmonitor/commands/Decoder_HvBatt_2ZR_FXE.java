@@ -25,7 +25,6 @@ public class Decoder_HvBatt_2ZR_FXE extends GenericResponseDecoder {
 		int len = cmd.getResponsePayload(_formattedBytesResponse);
 		if (D) Log.d(TAG, "Payload size = "+len);
 		if (len > 0) {
-			final int bigShort = 0x8000;
 			int us1;
 			int ushort;
 			double resDouble;
