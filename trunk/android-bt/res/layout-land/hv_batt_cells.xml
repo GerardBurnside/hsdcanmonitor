@@ -4,8 +4,7 @@
   android:layout_width="fill_parent"
   android:layout_height="fill_parent">
 
-	<TableLayout android:id="@+id/TableLayout01" android:layout_width="fill_parent" android:layout_height="fill_parent"
-      android:stretchColumns="0,1">
+	<TableLayout android:id="@+id/TableLayout01" android:layout_width="fill_parent" android:layout_height="fill_parent" android:stretchColumns="0,1,2">
 		<TableRow android:id="@+id/TableRow01" android:layout_width="fill_parent" android:layout_height="fill_parent">
 			  <TextView android:text="14,371"
 		      	  android:id="@+id/hv_volt_group01"
@@ -15,18 +14,16 @@
 		      	  android:id="@+id/hv_volt_group02"
 		      	  android:textSize="70px"
 		      	  android:gravity="center"/>		  
-		</TableRow>
-		<TableRow android:id="@+id/TableRow02" android:layout_width="wrap_content" android:layout_height="wrap_content">
 			  <TextView android:text="14,373"
 		      	  android:id="@+id/hv_volt_group03"
 		      	  android:textSize="70px"
 		      	  android:gravity="center"/>		  
+		</TableRow>
+		<TableRow android:id="@+id/TableRow02" android:layout_width="wrap_content" android:layout_height="wrap_content">
 			  <TextView android:text="14,374"
 		      	  android:id="@+id/hv_volt_group04"
 		      	  android:textSize="70px"
 		      	  android:gravity="center"/>		  
-		</TableRow>
-		<TableRow android:id="@+id/TableRow03" android:layout_width="wrap_content" android:layout_height="wrap_content">
 			  <TextView android:text="14,375"
 		      	  android:id="@+id/hv_volt_group05"
 		      	  android:textSize="70px"
@@ -36,7 +33,7 @@
 		      	  android:textSize="70px"
 		      	  android:gravity="center"/>		  
 		</TableRow>
-		<TableRow android:id="@+id/TableRow04" android:layout_width="wrap_content" android:layout_height="wrap_content">
+		<TableRow android:id="@+id/TableRow03" android:layout_width="wrap_content" android:layout_height="wrap_content">
 			  <TextView android:text="14,377"
 		      	  android:id="@+id/hv_volt_group07"
 		      	  android:textSize="70px"
@@ -45,18 +42,16 @@
 		      	  android:id="@+id/hv_volt_group08"
 		      	  android:textSize="70px"
 		      	  android:gravity="center"/>		  
-		</TableRow>
-		<TableRow android:id="@+id/TableRow05" android:layout_width="wrap_content" android:layout_height="wrap_content">
 			  <TextView android:text="14,379"
 		      	  android:id="@+id/hv_volt_group09"
 		      	  android:textSize="70px"
 		      	  android:gravity="center"/>		  
+		</TableRow>
+		<TableRow android:id="@+id/TableRow04" android:layout_width="wrap_content" android:layout_height="wrap_content">
 			  <TextView android:text="14,380"
 		      	  android:id="@+id/hv_volt_group10"
 		      	  android:textSize="70px"
 		      	  android:gravity="center"/>		  
-		</TableRow>
-		<TableRow android:id="@+id/TableRow06" android:layout_width="wrap_content" android:layout_height="wrap_content">
 			  <TextView android:text="14,381"
 		      	  android:id="@+id/hv_volt_group11"
 		      	  android:textSize="70px"
@@ -66,7 +61,7 @@
 		      	  android:textSize="70px"
 		      	  android:gravity="center"/>		  
 		</TableRow>
-		<TableRow android:id="@+id/TableRow07" android:layout_width="wrap_content" android:layout_height="wrap_content">
+		<TableRow android:id="@+id/TableRow05" android:layout_width="wrap_content" android:layout_height="wrap_content">
 			  <TextView android:text="14,383"
 		      	  android:id="@+id/hv_volt_group13"
 		      	  android:textSize="70px"

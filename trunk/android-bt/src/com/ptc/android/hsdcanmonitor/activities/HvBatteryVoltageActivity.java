@@ -30,6 +30,8 @@ public class HvBatteryVoltageActivity extends Activity {
     // Debugging
     private static final String TAG = "HsdCanMonitor.HV";
     private static final boolean D = CoreEngine.D;
+
+    private static volatile boolean _visible = false;
     // Layout Views
     private TextView mGroup01;
     private TextView mGroup02;
@@ -89,6 +91,7 @@ public class HvBatteryVoltageActivity extends Activity {
     		finish();
     		return;
     	}
+    	_visible = true;
         // This is called each time we switch to this activity: set ourselves as
         // the current handler of all UI-related requests from the CoreEngine:
         CoreEngine.setCurrentHandler(mHandler);
@@ -111,7 +114,7 @@ public class HvBatteryVoltageActivity extends Activity {
 						// Ignore
 						if (D) Log.e(TAG, "Interrupted while waiting before BT discovery...");
 					}
-                	if (!CanInterface.getInstance().isConnecting())
+                	if (_visible && !CanInterface.getInstance().isConnecting())
                 		CoreEngine.scanDevices();
         		}
         	}.start();
@@ -182,9 +185,6 @@ public class HvBatteryVoltageActivity extends Activity {
                 startActivityForResult(serverIntent, CoreEngine.REQUEST_CONNECT_DEVICE);
                 break;
             case CoreEngine.MESSAGE_COMMAND_RESPONSE:
-            	// Interpret the response here:
-            	// TODO:
-
             	break;
             case CoreEngine.MESSAGE_SWITCH_UI:
                 Intent liveIntent = new Intent(getApplicationContext(), HsdConsoleActivity.class);
@@ -283,17 +283,20 @@ public class HvBatteryVoltageActivity extends Activity {
         super.onPause();
         if(D) Log.e(TAG, "- ON PAUSE -");
         // Unless we're logging to file, stop asking for values:
-    	if (!ResponseHandler.getInstance().isLoggingEnabled()) {
-        	CommandScheduler.getInstance().stopLiveMonitoringCommands();
-    	}
+    	//if (!ResponseHandler.getInstance().isLoggingEnabled()) {
+        //	CommandScheduler.getInstance().stopLiveMonitoringCommands();
+    	//}
    }
 
     @Override
     public void onStop() {
         super.onStop();
         if(D) Log.e(TAG, "-- ON STOP --");
-        // Unconditional stop of background commands:
-    	CommandScheduler.getInstance().stopLiveMonitoringCommands();
+        _visible = false;
+        // Unless we're logging to file, stop asking for values:
+    	if (!ResponseHandler.getInstance().isLoggingEnabled()) {
+        	CommandScheduler.getInstance().stopLiveMonitoringCommands();
+    	}
     }
 
     @Override
@@ -301,6 +304,8 @@ public class HvBatteryVoltageActivity extends Activity {
         super.onDestroy();
         // Stop everything: Don't do this:
         //CoreEngine.stopAllThreads();
+        // Unconditional stop of background commands:
+    	CommandScheduler.getInstance().stopLiveMonitoringCommands();
         if(D) Log.e(TAG, "--- ON DESTROY ---");
     }
 	

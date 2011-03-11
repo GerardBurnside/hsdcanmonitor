@@ -37,6 +37,7 @@ public class HsdLiveMonitoringActivity extends Activity {
     private TextView mMG1RPM;
     private TextView mMG2RPM;
     private TextView mIceRPM;
+    private static volatile boolean _visible = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -73,6 +74,7 @@ public class HsdLiveMonitoringActivity extends Activity {
     		finish();
     		return;
     	}
+        _visible = true;
         // This is called each time we switch to this activity: set ourselves as
         // the current handler of all UI-related requests from the CoreEngine:
         CoreEngine.setCurrentHandler(mHandler);
@@ -92,7 +94,7 @@ public class HsdLiveMonitoringActivity extends Activity {
 						// Ignore
 						if (D) Log.e(TAG, "Interrupted while waiting before BT discovery...");
 					}
-                	if (!CanInterface.getInstance().isConnecting())
+                	if (_visible && !CanInterface.getInstance().isConnecting())
                 		CoreEngine.scanDevices();
         		}
         	}.start();
@@ -261,9 +263,16 @@ public class HsdLiveMonitoringActivity extends Activity {
    }
 
     @Override
+    protected synchronized void onResume() {
+        super.onResume();
+        if(D) Log.e(TAG, "- ON RESUME -");
+   }
+
+    @Override
     public void onStop() {
         super.onStop();
         if(D) Log.e(TAG, "-- ON STOP --");
+        _visible = false;
         // Unless we're logging to file, stop asking for values:
     	if (!ResponseHandler.getInstance().isLoggingEnabled()) {
         	CommandScheduler.getInstance().stopLiveMonitoringCommands();
