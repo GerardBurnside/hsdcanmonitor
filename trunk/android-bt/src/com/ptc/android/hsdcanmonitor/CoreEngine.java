@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.util.Pair;
+import android.view.Menu;
 import android.view.MenuItem;
 
 
@@ -298,7 +299,23 @@ public final class CoreEngine {
 			// Or not?: example: phone call while driving...
 		//}
 	}
-
+	
+	/**
+	 * Menu shared between activities:
+	 */
+	public static void prepareMenu(Menu menu) {
+    	// Change the log to file menu label if needed:
+        MenuItem item = menu.findItem(R.id.monitoring_on_off);
+    	if (ResponseHandler.getInstance().isLoggingEnabled()) {
+    		// Change the label of the menu:
+    		item.setTitle(R.string.stop_logging);
+    	}
+    	else {
+    		// Change the label of the menu:
+    		item.setTitle(R.string.log_to_file);
+    	}
+	}
+	
 	/**
 	 * Below are helper methods to share code between the activities
 	 */
@@ -340,16 +357,7 @@ public final class CoreEngine {
         case R.id.monitoring_on_off:
         	// Maybe the "settings" menu would suit this action better (with a tick box)..
         	// Start or stop monitoring in a file on the SD card.
-        	if (ResponseHandler.getInstance().isLoggingEnabled()) {
-        		// Change the label of the menu:
-        		item.setTitle(R.string.log_to_file);
-            	ResponseHandler.getInstance().logToFileEnabled(false);
-        	}
-        	else {
-        		// Change the label of the menu:
-        		item.setTitle(R.string.stop_logging);
-            	ResponseHandler.getInstance().logToFileEnabled(true);
-        	}
+        	ResponseHandler.getInstance().toggleLogging();
             return true;
 	    case R.id.app_settings:
 	    	// TODO?

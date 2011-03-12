@@ -1,0 +1,2 @@
+Default packaged configuration files shall be placed here and copied at startup in a "/sdcard/BtHsdMonitor/" directory (if not there already).
+The configuration shall then be read from the sdcard.

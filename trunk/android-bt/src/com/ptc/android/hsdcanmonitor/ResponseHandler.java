@@ -69,24 +69,22 @@ public class ResponseHandler implements Runnable {
 		return _logLiveMonitoringCommands;
 	}
 
-	public void logToFileEnabled(boolean b) {
-		// TODO this should be stored in a preference settings..
-		if (b != _logLiveMonitoringCommands) {
-			_logLiveMonitoringCommands = b;
-			if (b) {
-	        	if (CommandScheduler.getInstance()._runLiveMonitoringCommands) {
-					startLoggingCommands();
-	        	}
-	        	else {
-	        		// The user wants to log, log only
-	        		// the manual commands or start monitoring?
-	        	}
-			}
-			else { // Close the file properly:
-				endLoggingCommands();
-			}
+	public void toggleLogging() {
+		// TODO maybe this should be stored in a preference settings..
+		if (_logLiveMonitoringCommands) {
+			_logLiveMonitoringCommands = false;
+			endLoggingCommands();
 		}
-		// else already done..
+		else {
+			_logLiveMonitoringCommands = true;
+        	if (CommandScheduler.getInstance()._runLiveMonitoringCommands) {
+				startLoggingCommands();
+        	}
+        	else {
+        		// The user wants to log, log only
+        		// the manual commands or start monitoring?
+        	}
+		}
 	}
 
 	public void logCommand(CommandResponseObject request) {
@@ -97,7 +95,7 @@ public class ResponseHandler implements Runnable {
     	// else, ignore this output, probably an init or manual command..
     }
     
-    public void startLoggingCommands() {
+    protected void startLoggingCommands() {
     	if (!_logLiveMonitoringCommands)
     		return;
     	// Else:
@@ -129,7 +127,7 @@ public class ResponseHandler implements Runnable {
 		}
     }
     
-    public void endLoggingCommands() {
+    protected void endLoggingCommands() {
     	if (_currentLogFile == null)
     		return; // Nothing to do.
     	// else:

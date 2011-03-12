@@ -127,6 +127,11 @@ public class HvBatteryVoltageActivity extends Activity {
         inflater.inflate(R.menu.option_menu, menu);
         return true;
     }
+    @Override
+    public boolean onPrepareOptionsMenu (Menu menu) {
+    	CoreEngine.prepareMenu(menu);
+        return super.onPrepareOptionsMenu(menu);
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

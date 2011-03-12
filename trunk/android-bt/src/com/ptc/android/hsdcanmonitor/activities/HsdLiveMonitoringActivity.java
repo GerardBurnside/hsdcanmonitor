@@ -102,6 +102,11 @@ public class HsdLiveMonitoringActivity extends Activity {
     }
 
     @Override
+    public boolean onPrepareOptionsMenu (Menu menu) {
+        CoreEngine.prepareMenu(menu);
+        return super.onPrepareOptionsMenu(menu);
+    }
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.option_menu, menu);
