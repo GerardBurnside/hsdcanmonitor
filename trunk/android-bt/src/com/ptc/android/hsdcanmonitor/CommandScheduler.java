@@ -131,7 +131,7 @@ public class CommandScheduler implements Runnable {
 						try {
 							_syncObj.wait();
 						} catch (InterruptedException e) {
-							// TODO ?
+							// No big deal, we'll go back to sleep if needed.
 						}
 						// we've been woken up, let's start over:
 						continue;
@@ -169,7 +169,7 @@ public class CommandScheduler implements Runnable {
 		feedInterface(cmd);
 		cmd = new InitCommand("ATL0","OK");
 		feedInterface(cmd);
-		cmd = new InitCommand("ATS0","OK"); // Fail if not ok?
+		cmd = new InitCommand("ATS0"); // Some dongles donot support this!
 		feedInterface(cmd);
 		cmd = new InitCommand("ATSH 7E2","OK");
 		feedInterface(cmd);

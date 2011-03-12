@@ -93,7 +93,7 @@ public class HsdConsoleActivity extends Activity {
         // the current handler of all UI-related requests from the CoreEngine:
         CoreEngine.setCurrentHandler(mHandler);
         
-        // TODO: Check if connected to device and launch activity if needed...
+        // TODO? Check if connected to device and launch activity if needed...
     }
 
     

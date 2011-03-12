@@ -61,7 +61,7 @@ public class InitCommand extends CommandResponseObject {
 	
 	private void detectHSD() {
 		String respStr = _rawStringResponse.toString();
-		// TODO: Check if ATS0 was a success or not...
+		// Check if ATS0 was a success or not...
 		if (_rawStringResponse.indexOf(" ") < 0) {
 			ats0_supported = true;
 		}
