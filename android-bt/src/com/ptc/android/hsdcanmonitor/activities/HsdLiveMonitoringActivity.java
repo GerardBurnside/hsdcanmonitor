@@ -223,9 +223,10 @@ public class HsdLiveMonitoringActivity extends Activity {
                 	case GenericResponseDecoder.ICE_RPM:
                 		if (mIceRPM != null) {
                 			mIceRPM.setText(item.second);
-                			final String minRPM = "965";
-                			if (minRPM.length() >= item.second.length() 
-                				&& minRPM.compareTo(item.second) > 0) {
+                			// Lowest rpm I've seen that will cause fuel injection if I go to N
+                			final String noFuelRPM = "925";
+                			if (noFuelRPM.length() >= item.second.length() 
+                				&& noFuelRPM.compareTo(item.second) > 0) {
                 				mIceRPM.setTextColor(Color.DKGRAY);                				
                 			}
                 			else {

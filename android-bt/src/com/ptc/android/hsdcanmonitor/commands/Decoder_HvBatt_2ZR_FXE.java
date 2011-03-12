@@ -34,59 +34,59 @@ public class Decoder_HvBatt_2ZR_FXE extends GenericResponseDecoder {
 			us1 = getNextUnsignedShort(); // first part of the 2-byte short
 			ushort = us1*256 + getNextUnsignedShort();
 			resDouble = ushort / 1000.0;
-			res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_VOLT_01,Double.toString(resDouble)));
+			res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_01,Double.toString(resDouble)));
 			us1 = getNextUnsignedShort(); // first part of the 2-byte short
 			ushort = us1*256 + getNextUnsignedShort();
 			resDouble = ushort / 1000.0;
-			res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_VOLT_02,Double.toString(resDouble)));
+			res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_02,Double.toString(resDouble)));
 			us1 = getNextUnsignedShort(); // first part of the 2-byte short
 			ushort = us1*256 + getNextUnsignedShort();
 			resDouble = ushort / 1000.0;
-			res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_VOLT_03,Double.toString(resDouble)));
+			res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_03,Double.toString(resDouble)));
 			us1 = getNextUnsignedShort(); // first part of the 2-byte short
 			ushort = us1*256 + getNextUnsignedShort();
 			resDouble = ushort / 1000.0;
-			res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_VOLT_04,Double.toString(resDouble)));
+			res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_04,Double.toString(resDouble)));
 			us1 = getNextUnsignedShort(); // first part of the 2-byte short
 			ushort = us1*256 + getNextUnsignedShort();
 			resDouble = ushort / 1000.0;
-			res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_VOLT_05,Double.toString(resDouble)));
+			res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_05,Double.toString(resDouble)));
 			us1 = getNextUnsignedShort(); // first part of the 2-byte short
 			ushort = us1*256 + getNextUnsignedShort();
 			resDouble = ushort / 1000.0;
-			res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_VOLT_06,Double.toString(resDouble)));
+			res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_06,Double.toString(resDouble)));
 			us1 = getNextUnsignedShort(); // first part of the 2-byte short
 			ushort = us1*256 + getNextUnsignedShort();
 			resDouble = ushort / 1000.0;
-			res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_VOLT_07,Double.toString(resDouble)));
+			res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_07,Double.toString(resDouble)));
 			us1 = getNextUnsignedShort(); // first part of the 2-byte short
 			ushort = us1*256 + getNextUnsignedShort();
 			resDouble = ushort / 1000.0;
-			res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_VOLT_08,Double.toString(resDouble)));
+			res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_08,Double.toString(resDouble)));
 			us1 = getNextUnsignedShort(); // first part of the 2-byte short
 			ushort = us1*256 + getNextUnsignedShort();
 			resDouble = ushort / 1000.0;
-			res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_VOLT_09,Double.toString(resDouble)));
+			res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_09,Double.toString(resDouble)));
 			us1 = getNextUnsignedShort(); // first part of the 2-byte short
 			ushort = us1*256 + getNextUnsignedShort();
 			resDouble = ushort / 1000.0;
-			res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_VOLT_10,Double.toString(resDouble)));
+			res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_10,Double.toString(resDouble)));
 			us1 = getNextUnsignedShort(); // first part of the 2-byte short
 			ushort = us1*256 + getNextUnsignedShort();
 			resDouble = ushort / 1000.0;
-			res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_VOLT_11,Double.toString(resDouble)));
+			res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_11,Double.toString(resDouble)));
 			us1 = getNextUnsignedShort(); // first part of the 2-byte short
 			ushort = us1*256 + getNextUnsignedShort();
 			resDouble = ushort / 1000.0;
-			res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_VOLT_12,Double.toString(resDouble)));
+			res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_12,Double.toString(resDouble)));
 			us1 = getNextUnsignedShort(); // first part of the 2-byte short
 			ushort = us1*256 + getNextUnsignedShort();
 			resDouble = ushort / 1000.0;
-			res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_VOLT_13,Double.toString(resDouble)));
+			res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_13,Double.toString(resDouble)));
 			us1 = getNextUnsignedShort(); // first part of the 2-byte short
 			ushort = us1*256 + getNextUnsignedShort();
 			resDouble = ushort / 1000.0;
-			res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_VOLT_14,Double.toString(resDouble)));
+			res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_14,Double.toString(resDouble)));
 		}
 		// Might be null:
 		return res;

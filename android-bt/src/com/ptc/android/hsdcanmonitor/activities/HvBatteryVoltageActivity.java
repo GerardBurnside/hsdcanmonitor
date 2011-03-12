@@ -198,72 +198,72 @@ public class HvBatteryVoltageActivity extends Activity {
                 ArrayList<Pair<Integer, String>> refreshValues = (ArrayList<Pair<Integer, String>>) msg.getData().get(CoreEngine.UI_UPDATE_ITEM);
                 for (Pair<Integer, String> item : refreshValues) {
                 	switch(item.first) {
-                	case GenericResponseDecoder.BATT_VOLT_01:
+                	case GenericResponseDecoder.HV_BATT_VOLT_01:
                 		if (mGroup01 != null) {
                 			mGroup01.setText(item.second);
                 		}                			
                 		break;
-                	case GenericResponseDecoder.BATT_VOLT_02:
+                	case GenericResponseDecoder.HV_BATT_VOLT_02:
                 		if (mGroup02 != null) {
                 			mGroup02.setText(item.second);
                 		}                			
                 		break;
-                	case GenericResponseDecoder.BATT_VOLT_03:
+                	case GenericResponseDecoder.HV_BATT_VOLT_03:
                 		if (mGroup03 != null) {
                 			mGroup03.setText(item.second);
                 		}                			
                 		break;
-                	case GenericResponseDecoder.BATT_VOLT_04:
+                	case GenericResponseDecoder.HV_BATT_VOLT_04:
                 		if (mGroup04 != null) {
                 			mGroup04.setText(item.second);
                 		}                			
                 		break;
-                	case GenericResponseDecoder.BATT_VOLT_05:
+                	case GenericResponseDecoder.HV_BATT_VOLT_05:
                 		if (mGroup05 != null) {
                 			mGroup05.setText(item.second);
                 		}                			
                 		break;
-                	case GenericResponseDecoder.BATT_VOLT_06:
+                	case GenericResponseDecoder.HV_BATT_VOLT_06:
                 		if (mGroup06 != null) {
                 			mGroup06.setText(item.second);
                 		}                			
                 		break;
-                	case GenericResponseDecoder.BATT_VOLT_07:
+                	case GenericResponseDecoder.HV_BATT_VOLT_07:
                 		if (mGroup07 != null) {
                 			mGroup07.setText(item.second);
                 		}                			
                 		break;
-                	case GenericResponseDecoder.BATT_VOLT_08:
+                	case GenericResponseDecoder.HV_BATT_VOLT_08:
                 		if (mGroup08 != null) {
                 			mGroup08.setText(item.second);
                 		}                			
                 		break;
-                	case GenericResponseDecoder.BATT_VOLT_09:
+                	case GenericResponseDecoder.HV_BATT_VOLT_09:
                 		if (mGroup09 != null) {
                 			mGroup09.setText(item.second);
                 		}                			
                 		break;
-                	case GenericResponseDecoder.BATT_VOLT_10:
+                	case GenericResponseDecoder.HV_BATT_VOLT_10:
                 		if (mGroup10 != null) {
                 			mGroup10.setText(item.second);
                 		}                			
                 		break;
-                	case GenericResponseDecoder.BATT_VOLT_11:
+                	case GenericResponseDecoder.HV_BATT_VOLT_11:
                 		if (mGroup11 != null) {
                 			mGroup11.setText(item.second);
                 		}                			
                 		break;
-                	case GenericResponseDecoder.BATT_VOLT_12:
+                	case GenericResponseDecoder.HV_BATT_VOLT_12:
                 		if (mGroup12 != null) {
                 			mGroup12.setText(item.second);
                 		}                			
                 		break;
-                	case GenericResponseDecoder.BATT_VOLT_13:
+                	case GenericResponseDecoder.HV_BATT_VOLT_13:
                 		if (mGroup13 != null) {
                 			mGroup13.setText(item.second);
                 		}                			
                 		break;
-                	case GenericResponseDecoder.BATT_VOLT_14:
+                	case GenericResponseDecoder.HV_BATT_VOLT_14:
                 		if (mGroup14 != null) {
                 			mGroup14.setText(item.second);
                 		}                			

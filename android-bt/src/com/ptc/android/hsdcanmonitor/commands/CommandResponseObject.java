@@ -24,6 +24,8 @@ public class CommandResponseObject {
 
 	// Global flag to know whether the device supports the ATS0 command (i.e. can it remove spaces or not):
 	public static boolean ats0_supported = true; // Assume true by default.
+	public static boolean ath1_enabled = true; // Try not sending ath1 to make things faster?
+
 
     // Possible specific timeout for a command that might take longer than usual:
     public long specific_timeout_value = CanInterface.DEFAULT_RESPONSE_TIME_OUT;
@@ -80,6 +82,13 @@ public class CommandResponseObject {
 	public String getResponseString() {
 		return _rawStringResponse.toString();
 	}
+	
+	/**
+	 * Returns the ECU(s?) which provided the response
+	 */
+	public String getECU() {
+		return null; // Not needed yet.
+	}
 
 	/**
 	 * This class is responsible for retrieving the useful information
@@ -95,8 +104,9 @@ public class CommandResponseObject {
 				// Reset the buffer:
 				response.rewind();
 				
-				final int frameLength = ats0_supported? 20 : 28;
-				final int initialIndent = ats0_supported? 5 : 7; 
+				final int header = ath1_enabled? 5 : 0;
+				final int frameLength = header + (ats0_supported? 15 : 24);
+				final int initialIndent = header + (ats0_supported? 0 : 2); 
 				final int step = ats0_supported? 2 : 3;
 				
 				// First, remove parasitic '\r':

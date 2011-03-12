@@ -112,7 +112,6 @@ public class CanInterface implements Runnable {
 		// so that a connectToDevice() and new Thread().start()
 		// are required to restart the commands processing.
 
-		// TODO? send a request for the device to go into sleep mode before closing the socket?
 		_keepRunning = false;
 		try {
 			if (_sock != null)
@@ -305,7 +304,6 @@ public class CanInterface implements Runnable {
 	}
 
 	public boolean isConnected() {
-		// TODO improve this?
 		return _keepRunning && (_fakeDebugResponses || _out != null);
 	}
 
