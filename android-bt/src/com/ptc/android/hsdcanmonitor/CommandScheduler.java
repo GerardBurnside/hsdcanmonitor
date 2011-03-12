@@ -191,7 +191,7 @@ public class CommandScheduler implements Runnable {
 			LiveMonitoringCommand.loadDecoder("com.ptc.android.hsdcanmonitor.commands.Decoder_2ZR_FXE");
 			// Build an Array of LiveMonitoringCommands to cycle through
 			// TODO: read them from the xml file instead:
-			newCmd = new LiveMonitoringCommand("AT SH 7E0", true);
+			newCmd = new LiveMonitoringCommand("ATSH 7E0", true);
 			_liveMonitoringCommands.add(newCmd);
 			newCmd = new LiveMonitoringCommand("013C3E", false);
 			newCmd.periodicity = 100;
@@ -199,7 +199,7 @@ public class CommandScheduler implements Runnable {
 			newCmd = new LiveMonitoringCommand("21013C49", false);
 			newCmd.periodicity = 1;
 			_liveMonitoringCommands.add(newCmd);
-			newCmd = new LiveMonitoringCommand("AT SH 7E2", false);
+			newCmd = new LiveMonitoringCommand("ATSH 7E2", false);
 			newCmd.periodicity = 1;
 			_liveMonitoringCommands.add(newCmd);
 			newCmd = new LiveMonitoringCommand("2161626768748A", false);
@@ -208,7 +208,7 @@ public class CommandScheduler implements Runnable {
 			newCmd = new LiveMonitoringCommand("210170718798", false);
 			newCmd.periodicity = 10;
 			_liveMonitoringCommands.add(newCmd);
-			newCmd = new LiveMonitoringCommand("AT SH 7C0", false);
+			newCmd = new LiveMonitoringCommand("ATSH 7C0", false);
 			newCmd.periodicity = 1000;
 			_liveMonitoringCommands.add(newCmd);
 			newCmd = new LiveMonitoringCommand("2129", false);

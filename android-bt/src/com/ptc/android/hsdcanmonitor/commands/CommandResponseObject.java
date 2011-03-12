@@ -24,8 +24,6 @@ public class CommandResponseObject {
 
 	// Global flag to know whether the device supports the ATS0 command (i.e. can it remove spaces or not):
 	public static boolean ats0_supported = true; // Assume true by default.
-	public static boolean ath1_enabled = true; // Try not sending ath1 to make things faster?
-
 
     // Possible specific timeout for a command that might take longer than usual:
     public long specific_timeout_value = CanInterface.DEFAULT_RESPONSE_TIME_OUT;
@@ -104,9 +102,9 @@ public class CommandResponseObject {
 				// Reset the buffer:
 				response.rewind();
 				
-				final int header = ath1_enabled? 5 : 0;
-				final int frameLength = header + (ats0_supported? 15 : 24);
-				final int initialIndent = header + (ats0_supported? 0 : 2); 
+				// Header is the ECU bytes + the multiframe (10) or length bytes
+				final int header = ats0_supported? 5 : 7;
+				final int frameLength = header + (ats0_supported? 15 : 22);
 				final int step = ats0_supported? 2 : 3;
 				
 				// First, remove parasitic '\r':
@@ -116,7 +114,7 @@ public class CommandResponseObject {
 				// each frame should contain exactly 20 char: 3+ 8*2 + "\n"
 				int nf=_rawStringResponse.length()/ frameLength; // nf = number of frames
 				for (int nl=0; nl<nf; nl++) {           // nl= frame number
-					int start=nl*frameLength+initialIndent; // start with the 6th or 8th char
+					int start=nl*frameLength+header; // start with the 6th or 8th char
 					for(int bb=0;bb<7;bb++){            // bb est le couple à traiter
 						int pos = start + bb*step;         // pos est la position dans la chaine du couple à traiter
 						response.put((byte) ((Character.digit(_rawStringResponse.charAt(pos), 16) << 4)
