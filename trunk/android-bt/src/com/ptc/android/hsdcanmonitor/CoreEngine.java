@@ -63,7 +63,7 @@ public final class CoreEngine {
     private static volatile boolean _scanningDevices = false;
 
     // Parent Activity:
-    private static Handler _parentHandler;
+    protected static Handler _parentHandler;
 
     // Store references of threads so that we can stop them at will:
     private static Thread _interface;

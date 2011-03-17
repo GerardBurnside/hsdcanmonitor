@@ -70,6 +70,10 @@
 		      	  android:id="@+id/hv_volt_group14"
 		      	  android:textSize="70px"
 		      	  android:gravity="center"/>		  
+			  <TextView android:text="12,345"
+		      	  android:id="@+id/aux_batt"
+		      	  android:textSize="50px"
+		      	  android:gravity="right"/>		  
 		</TableRow>
 	</TableLayout>
 </LinearLayout>

@@ -47,6 +47,7 @@ public class HvBatteryVoltageActivity extends Activity {
     private TextView mGroup12;
     private TextView mGroup13;
     private TextView mGroup14;
+    private TextView mAuxBatt;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -76,6 +77,7 @@ public class HvBatteryVoltageActivity extends Activity {
         mGroup12 = (TextView) findViewById(R.id.hv_volt_group12);
         mGroup13 = (TextView) findViewById(R.id.hv_volt_group13);
         mGroup14 = (TextView) findViewById(R.id.hv_volt_group14);
+        mAuxBatt = (TextView) findViewById(R.id.aux_batt);
         
         // Start the core engine:
         CoreEngine.setCurrentHandler(mHandler);
@@ -96,6 +98,7 @@ public class HvBatteryVoltageActivity extends Activity {
         // the current handler of all UI-related requests from the CoreEngine:
         CoreEngine.setCurrentHandler(mHandler);
 
+        // TODO: Should load the XML corresponding to HSD type (PII or PIII):
         CommandScheduler.getInstance().setMonitoringCommands("hv_batt_PIII.xml");
         
         if (CanInterface.getInstance().isConnected()) {
@@ -273,6 +276,11 @@ public class HvBatteryVoltageActivity extends Activity {
                 			mGroup14.setText(item.second);
                 		}                			
                 		break;
+                	case GenericResponseDecoder.AUX_BATT:
+                		if (mAuxBatt != null) {
+                			mAuxBatt.setText(item.second);
+                		}                			
+                		break;
                 	}
                 }
             }
@@ -300,7 +308,7 @@ public class HvBatteryVoltageActivity extends Activity {
         _visible = false;
         // Unless we're logging to file, stop asking for values:
     	if (!ResponseHandler.getInstance().isLoggingEnabled()) {
-        	CommandScheduler.getInstance().stopLiveMonitoringCommands();
+        	CommandScheduler.getInstance().stopLiveMonitoringCommands(mHandler);
     	}
     }
 
@@ -310,7 +318,7 @@ public class HvBatteryVoltageActivity extends Activity {
         // Stop everything: Don't do this:
         //CoreEngine.stopAllThreads();
         // Unconditional stop of background commands:
-    	CommandScheduler.getInstance().stopLiveMonitoringCommands();
+    	CommandScheduler.getInstance().stopLiveMonitoringCommands(mHandler);
         if(D) Log.e(TAG, "--- ON DESTROY ---");
     }
 	

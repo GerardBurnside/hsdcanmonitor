@@ -132,6 +132,84 @@ public class Decoder_2ZR_FXE extends GenericResponseDecoder {
 				ushort = (us1*256 + getNextUnsignedShort()) - bigShort;
 				res.add(new Pair<Integer, String>(GenericResponseDecoder.ICE_TORQUE,Integer.toString(ushort)));
 			}
+			else if ("210170718798".equals(cmd._command)) {
+				// Initial offset: First byte after command id:
+				// Uncomment if Ext_temp: _formattedBytesResponse.position(3);
+				// Offs=2	Ext_temp	°C	(Tb[Offs + 4] - 40
+				 //TODO if needed...
+
+				// Aux_Batt	volt	(Tb[Offs + 20] * 256 +  Tb[Offs + 21] )/1000
+				_formattedBytesResponse.position(22);
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = us1*256 + getNextUnsignedShort();
+				resDouble = ushort / 1000.0;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.AUX_BATT,Double.toString(resDouble)));
+				// SOC	%	Tb[Offs + 22]/255
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				resDouble = us1 / 2.55;
+				ushort = (int) resDouble;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.STATE_OF_CHARGE,Integer.toString(ushort)));
+			}
+			else if ("2181".equals(cmd._command)) { // HV Battery Voltage:
+				// Initial offset: First byte after command id:
+				_formattedBytesResponse.position(3);
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = us1*256 + getNextUnsignedShort();
+				resDouble = ushort / 1000.0;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_01,Double.toString(resDouble)));
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = us1*256 + getNextUnsignedShort();
+				resDouble = ushort / 1000.0;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_02,Double.toString(resDouble)));
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = us1*256 + getNextUnsignedShort();
+				resDouble = ushort / 1000.0;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_03,Double.toString(resDouble)));
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = us1*256 + getNextUnsignedShort();
+				resDouble = ushort / 1000.0;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_04,Double.toString(resDouble)));
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = us1*256 + getNextUnsignedShort();
+				resDouble = ushort / 1000.0;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_05,Double.toString(resDouble)));
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = us1*256 + getNextUnsignedShort();
+				resDouble = ushort / 1000.0;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_06,Double.toString(resDouble)));
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = us1*256 + getNextUnsignedShort();
+				resDouble = ushort / 1000.0;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_07,Double.toString(resDouble)));
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = us1*256 + getNextUnsignedShort();
+				resDouble = ushort / 1000.0;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_08,Double.toString(resDouble)));
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = us1*256 + getNextUnsignedShort();
+				resDouble = ushort / 1000.0;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_09,Double.toString(resDouble)));
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = us1*256 + getNextUnsignedShort();
+				resDouble = ushort / 1000.0;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_10,Double.toString(resDouble)));
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = us1*256 + getNextUnsignedShort();
+				resDouble = ushort / 1000.0;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_11,Double.toString(resDouble)));
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = us1*256 + getNextUnsignedShort();
+				resDouble = ushort / 1000.0;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_12,Double.toString(resDouble)));
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = us1*256 + getNextUnsignedShort();
+				resDouble = ushort / 1000.0;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_13,Double.toString(resDouble)));
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = us1*256 + getNextUnsignedShort();
+				resDouble = ushort / 1000.0;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_14,Double.toString(resDouble)));
+			}
 		}
 		// Might be null:
 		return res;

@@ -1,7 +1,9 @@
 package com.ptc.android.hsdcanmonitor.activities;
 
+import com.ptc.android.hsdcanmonitor.CommandScheduler;
 import com.ptc.android.hsdcanmonitor.CoreEngine;
 import com.ptc.android.hsdcanmonitor.R;
+import com.ptc.android.hsdcanmonitor.ResponseHandler;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
@@ -93,7 +95,10 @@ public class HsdConsoleActivity extends Activity {
         // the current handler of all UI-related requests from the CoreEngine:
         CoreEngine.setCurrentHandler(mHandler);
         
-        // TODO? Check if connected to device and launch activity if needed...
+        // Unless we're logging data, stop live monitoring to avoid AT SH mix-ups...
+        if (!ResponseHandler.getInstance().isLoggingEnabled()) {
+        	CommandScheduler.getInstance().stopLiveMonitoringCommands(mHandler);
+        }
     }
 
     
