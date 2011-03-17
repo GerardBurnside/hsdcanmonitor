@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import android.os.Handler;
 import android.util.Log;
 
 import com.ptc.android.hsdcanmonitor.commands.LiveMonitoringCommand;
@@ -74,7 +75,11 @@ public class CommandScheduler implements Runnable {
         }.start();
 	}
 
-	public void stopLiveMonitoringCommands() {
+	public void stopLiveMonitoringCommands(Handler handler) {
+		if (CoreEngine._parentHandler != handler) {
+			// Ignore this request because another activity is running now:
+			return;
+		}
 		// We will stop after the current command:
 		_runLiveMonitoringCommands = false;
 		// By stopping now, we're losing the last command, is this a big deal?
@@ -248,14 +253,17 @@ public class CommandScheduler implements Runnable {
 			newCmd.periodicity = 1000;
 			_liveMonitoringCommands.add(newCmd);
 		}
-		else if ("hv_batt_PIII.xml".equals(commands_filename)) {
+		else if ("hv_batt_PIII.xml".equals(commands_filename)) { // TODO: Not OK for PII :-(
 			// TODO: Load the decoder classname from the xml file!
-			LiveMonitoringCommand.loadDecoder("com.ptc.android.hsdcanmonitor.commands.Decoder_HvBatt_2ZR_FXE");			
+			LiveMonitoringCommand.loadDecoder("com.ptc.android.hsdcanmonitor.commands.Decoder_2ZR_FXE");			
 			// Build an Array of LiveMonitoringCommands to cycle through
 			// TODO: read them from the xml file instead:
 			manualCommands.add(new LiveMonitoringCommand("AT SH 7E2", true));
 			// Cycle on a single command:
-			newCmd = new LiveMonitoringCommand("2181", false);
+			newCmd = new LiveMonitoringCommand("2181", false); // TODO: Check 218101 ?
+			_liveMonitoringCommands.add(newCmd);
+			newCmd = new LiveMonitoringCommand("210170718798", false);
+			newCmd.periodicity = 10;
 			_liveMonitoringCommands.add(newCmd);
 		}
 		else if (CoreEngine.D) Log.e(CoreEngine.TAG, "Unable to parse file: " + commands_filename);

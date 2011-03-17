@@ -56,7 +56,6 @@ public abstract class GenericResponseDecoder {
 	Acc_Pedal	%	 
 	Atm_Press	kPa	 
 	Ext_Temp	°C	 
-	Aux_Batt	V	 
 	Speed	kM/H	 
 	Distance	kM
 	 */
@@ -74,6 +73,7 @@ public abstract class GenericResponseDecoder {
 	public static final int HV_BATT_VOLT_12 = 1012;
 	public static final int HV_BATT_VOLT_13 = 1013;
 	public static final int HV_BATT_VOLT_14 = 1014;
+	public static final int AUX_BATT		= 1015;	 
 
 	
 	// Variable used to store the command responses (GC optimization):

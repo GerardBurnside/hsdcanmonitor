@@ -72,8 +72,8 @@ public class CanInterface implements Runnable {
 	// Dropping the next background command because of failure of current one:
 	protected boolean _dropNextBackgroundCommand = false;
 
-	// Used to debug when no BT CAN interface is available for tests:
-	private boolean _fakeDebugResponses = false;// true if no BT dongle available ;-)
+	// Used to debug when no BT CAN interface is available for tests.
+	private boolean _fakeDebugResponses = true;// will try to connect anyway, used only if connection fails...
 	// For random chance timeout when debugging:
 	private Random _myRand = new Random();
 
@@ -271,27 +271,23 @@ public class CanInterface implements Runnable {
 	public synchronized boolean connectToDevice(BluetoothDevice device) {
 		_connecting = true;
 		try {
-			if (!_fakeDebugResponses) {
-				try {
-					_sock = device.createRfcommSocketToServiceRecord(MY_UUID);
-			        _sock.connect();
-			        _in = _sock.getInputStream();
-			        _out = _sock.getOutputStream();
-				} catch (IOException e) {
+			// In case I forgot to turn debug mode off: try anyway:
+			try {
+				_sock = device.createRfcommSocketToServiceRecord(MY_UUID);
+		        _sock.connect();
+		        _in = _sock.getInputStream();
+		        _out = _sock.getOutputStream();
+		        // No need to fake if we've gone this far:
+		        _fakeDebugResponses = false;
+			} catch (IOException e) {
+				if (!_fakeDebugResponses) {
 					CoreEngine.setState(CoreEngine.STATE_NONE);
 					_keepRunning = false;
 					return false;
+				} // else fake that the connection succeeded !
+				else { // THE CODE BELOW IS FOR DEBUG ONLY:
+					return true;
 				}
-			} // else fake that the connection succeeded !
-			else { // THE CODE BELOW IS FOR DEBUG ONLY:
-				// Simulate createSocket time:
-				try {
-					Thread.sleep(600);
-				}
-				catch (InterruptedException ie) {
-					return false;
-				}
-				return true;
 			}
 		}
 		finally {

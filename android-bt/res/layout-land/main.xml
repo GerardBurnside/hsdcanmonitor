@@ -9,12 +9,22 @@
       android:layout_marginTop="0dip"
       android:layout_width="fill_parent"
       android:layout_height="wrap_content"
-      android:stretchColumns="0,1"
+      android:stretchColumns="2,3"
       android:gravity="top|center" android:isScrollContainer="false">
       <TableRow
         android:clipToPadding="true"
         android:paddingTop="0dip"
       	android:layout_margin="0dip">
+      	<TextView
+      	  android:text="80"
+      	  android:id="@+id/hv_batt_soc"
+      	  android:textSize="40px"
+      	  android:gravity="top|left"/>
+      	<TextView
+      	  android:text="%"
+      	  android:id="@+id/hv_batt_soc_lbl"
+      	  android:textSize="20px"
+      	  android:gravity="top|left"/>
       	<TextView
       	  android:text="0"
       	  android:id="@+id/ice_rpm"
@@ -30,7 +40,7 @@
       	  android:id="@+id/hv_batt_amp"
       	  android:text="0"
       	  android:gravity="bottom|right"
-      	  android:textSize="160px"/>
+      	  android:textSize="140px"/>
       	<TextView
       	  android:text="A"
       	  android:id="@+id/hv_batt_amp_lbl"

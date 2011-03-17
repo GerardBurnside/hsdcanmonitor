@@ -32,6 +32,7 @@ public class HsdLiveMonitoringActivity extends Activity {
     private static final boolean D = CoreEngine.D;
 
     private TextView mBattAmp; 
+    private TextView mBattSOC; 
     private TextView mIceTemp;
     private TextView mIceTorque;
     private TextView mMG1RPM;
@@ -55,6 +56,7 @@ public class HsdLiveMonitoringActivity extends Activity {
         
         // Any one of those may be null depending on the layout:
         mBattAmp = (TextView) findViewById(R.id.hv_batt_amp);
+        mBattSOC = (TextView) findViewById(R.id.hv_batt_soc);
         mIceRPM = (TextView) findViewById(R.id.ice_rpm);
         mIceTemp = (TextView) findViewById(R.id.ice_temp);
         mMG1RPM = (TextView) findViewById(R.id.mg1_rpm);
@@ -205,6 +207,11 @@ public class HsdLiveMonitoringActivity extends Activity {
                 			else mBattAmp.setTextColor(Color.LTGRAY);
                 		}                			
                 		break;
+                	case GenericResponseDecoder.STATE_OF_CHARGE:
+                		if (mBattSOC != null) {
+                			mBattSOC.setText(item.second); // TODO: Colors?
+                		}                			
+                		break;
                 	case GenericResponseDecoder.ICE_TEMP:
                 		if (mIceTemp != null) {
                 			mIceTemp.setText(item.second);
@@ -281,7 +288,7 @@ public class HsdLiveMonitoringActivity extends Activity {
         _visible = false;
         // Unless we're logging to file, stop asking for values:
     	if (!ResponseHandler.getInstance().isLoggingEnabled()) {
-        	CommandScheduler.getInstance().stopLiveMonitoringCommands();
+        	CommandScheduler.getInstance().stopLiveMonitoringCommands(mHandler);
     	}
     }
 
@@ -289,7 +296,7 @@ public class HsdLiveMonitoringActivity extends Activity {
     public void onDestroy() {
         super.onDestroy();
         // Unconditional stop of background commands:
-    	CommandScheduler.getInstance().stopLiveMonitoringCommands();
+    	CommandScheduler.getInstance().stopLiveMonitoringCommands(mHandler);
         // Stop everything:
         //CoreEngine.stopAllThreads(); // Don't do this for now?
         if(D) Log.e(TAG, "--- ON DESTROY ---");
