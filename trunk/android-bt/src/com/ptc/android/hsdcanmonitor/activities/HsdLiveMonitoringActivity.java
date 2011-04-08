@@ -218,9 +218,10 @@ public class HsdLiveMonitoringActivity extends Activity {
                 			final String IceWontTurnOff = "40";
                 			final String NeedIdlingCheckCeremony = "70";
                    			final String howHotIsTooHot = "100";
-                			if (IceWontTurnOff.length() >= item.second.length() 
+                   			if ((item.second.charAt(0) == '-')
+                   					|| (IceWontTurnOff.length() >= item.second.length()) 
                 				&& IceWontTurnOff.compareTo(item.second) > 0) {
-                				mIceTemp.setTextColor(Color.BLUE);                				
+                				mIceTemp.setTextColor(Color.BLUE);		
                 			}
                 			else if (NeedIdlingCheckCeremony.length() == item.second.length() 
                     				&& NeedIdlingCheckCeremony.compareTo(item.second) > 0) {
@@ -236,7 +237,7 @@ public class HsdLiveMonitoringActivity extends Activity {
                 		if (mIceRPM != null) {
                 			mIceRPM.setText(item.second);
                 			// Lowest rpm I've seen that will cause fuel injection if I go to N
-                			final String noFuelRPM = "925";
+                			final String noFuelRPM = "911";
                 			if (noFuelRPM.length() >= item.second.length() 
                 				&& noFuelRPM.compareTo(item.second) > 0) {
                 				mIceRPM.setTextColor(Color.DKGRAY);                				
