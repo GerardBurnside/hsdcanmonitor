@@ -125,6 +125,21 @@ public class DeviceListActivity extends Activity {
             mPairedDevicesArrayAdapter.add(noDevices);
         }
     }
+    
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if(D) Log.e(TAG, "- ON START DeviceListActivity -");
+        if (CoreEngine.Exiting) {
+    		finish();
+    		return;
+    	}
+    }
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(D) Log.e(TAG, "- ON STOP DeviceListActivity -");
+    }
 
     @Override
     protected void onDestroy() {

@@ -73,7 +73,7 @@ public class CanInterface implements Runnable {
 	protected boolean _dropNextBackgroundCommand = false;
 
 	// Used to debug when no BT CAN interface is available for tests.
-	private boolean _fakeDebugResponses = true;// will try to connect anyway, used only if connection fails...
+	private boolean _fakeDebugResponses = false;// will try to connect anyway, used only if connection fails...
 	// For random chance timeout when debugging:
 	private Random _myRand = new Random();
 
@@ -286,6 +286,7 @@ public class CanInterface implements Runnable {
 					return false;
 				} // else fake that the connection succeeded !
 				else { // THE CODE BELOW IS FOR DEBUG ONLY:
+					CoreEngine.askForToastMessage(R.string.msg_warning_debug_on);
 					return true;
 				}
 			}

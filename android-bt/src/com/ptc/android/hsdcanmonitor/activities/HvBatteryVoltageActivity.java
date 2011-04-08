@@ -11,7 +11,9 @@ import com.ptc.android.hsdcanmonitor.ResponseHandler;
 import com.ptc.android.hsdcanmonitor.commands.GenericResponseDecoder;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,6 +33,7 @@ public class HvBatteryVoltageActivity extends Activity {
     private static final String TAG = "HsdCanMonitor.HV";
     private static final boolean D = CoreEngine.D;
 
+    private static final float MAX_VOLTAGE_DISCREPANCY = 0.3f;
     private static volatile boolean _visible = false;
     // Layout Views
     private TextView mGroup01;
@@ -48,6 +51,9 @@ public class HvBatteryVoltageActivity extends Activity {
     private TextView mGroup13;
     private TextView mGroup14;
     private TextView mAuxBatt;
+    
+	protected AlertDialog.Builder alertBuilder;
+
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -94,7 +100,8 @@ public class HvBatteryVoltageActivity extends Activity {
     		return;
     	}
     	_visible = true;
-        // This is called each time we switch to this activity: set ourselves as
+    	alertBuilder = new AlertDialog.Builder(this);
+    	// This is called each time we switch to this activity: set ourselves as
         // the current handler of all UI-related requests from the CoreEngine:
         CoreEngine.setCurrentHandler(mHandler);
 
@@ -143,6 +150,8 @@ public class HvBatteryVoltageActivity extends Activity {
 
     // The Handler that gets information back from the underlying services
     private final Handler mHandler = new Handler() {
+    	private float[] cellPairs = new float[15]; // Unused first slot!
+    	private AlertDialog alertVoltageDiscrepancy = null;
 		@SuppressWarnings("unchecked")
 		@Override
         public void handleMessage(Message msg) {
@@ -209,72 +218,87 @@ public class HvBatteryVoltageActivity extends Activity {
                 	case GenericResponseDecoder.HV_BATT_VOLT_01:
                 		if (mGroup01 != null) {
                 			mGroup01.setText(item.second);
-                		}                			
+                		}
+                		cellPairs[1] = Float.parseFloat(item.second);
                 		break;
                 	case GenericResponseDecoder.HV_BATT_VOLT_02:
                 		if (mGroup02 != null) {
                 			mGroup02.setText(item.second);
                 		}                			
+                		cellPairs[2] = Float.parseFloat(item.second);
                 		break;
                 	case GenericResponseDecoder.HV_BATT_VOLT_03:
                 		if (mGroup03 != null) {
                 			mGroup03.setText(item.second);
                 		}                			
+                		cellPairs[3] = Float.parseFloat(item.second);
                 		break;
                 	case GenericResponseDecoder.HV_BATT_VOLT_04:
                 		if (mGroup04 != null) {
                 			mGroup04.setText(item.second);
                 		}                			
+                		cellPairs[4] = Float.parseFloat(item.second);
                 		break;
                 	case GenericResponseDecoder.HV_BATT_VOLT_05:
                 		if (mGroup05 != null) {
                 			mGroup05.setText(item.second);
                 		}                			
+                		cellPairs[6] = Float.parseFloat(item.second);
                 		break;
                 	case GenericResponseDecoder.HV_BATT_VOLT_06:
                 		if (mGroup06 != null) {
                 			mGroup06.setText(item.second);
                 		}                			
+                		cellPairs[6] = Float.parseFloat(item.second);
                 		break;
                 	case GenericResponseDecoder.HV_BATT_VOLT_07:
                 		if (mGroup07 != null) {
                 			mGroup07.setText(item.second);
                 		}                			
+                		cellPairs[7] = Float.parseFloat(item.second);
                 		break;
                 	case GenericResponseDecoder.HV_BATT_VOLT_08:
                 		if (mGroup08 != null) {
                 			mGroup08.setText(item.second);
                 		}                			
+                		cellPairs[8] = Float.parseFloat(item.second);
                 		break;
                 	case GenericResponseDecoder.HV_BATT_VOLT_09:
                 		if (mGroup09 != null) {
                 			mGroup09.setText(item.second);
                 		}                			
+                		cellPairs[9] = Float.parseFloat(item.second);
                 		break;
                 	case GenericResponseDecoder.HV_BATT_VOLT_10:
                 		if (mGroup10 != null) {
                 			mGroup10.setText(item.second);
                 		}                			
+                		cellPairs[10] = Float.parseFloat(item.second);
                 		break;
                 	case GenericResponseDecoder.HV_BATT_VOLT_11:
                 		if (mGroup11 != null) {
                 			mGroup11.setText(item.second);
                 		}                			
+                		cellPairs[11] = Float.parseFloat(item.second);
                 		break;
                 	case GenericResponseDecoder.HV_BATT_VOLT_12:
                 		if (mGroup12 != null) {
                 			mGroup12.setText(item.second);
                 		}                			
+                		cellPairs[12] = Float.parseFloat(item.second);
                 		break;
                 	case GenericResponseDecoder.HV_BATT_VOLT_13:
                 		if (mGroup13 != null) {
                 			mGroup13.setText(item.second);
                 		}                			
+                		cellPairs[13] = Float.parseFloat(item.second);
                 		break;
                 	case GenericResponseDecoder.HV_BATT_VOLT_14:
                 		if (mGroup14 != null) {
                 			mGroup14.setText(item.second);
-                		}                			
+                		} // All 14 groups have been received, let's run a quick check:
+                		cellPairs[14] = Float.parseFloat(item.second);
+                		checkVoltageDiscrepancies();
                 		break;
                 	case GenericResponseDecoder.AUX_BATT:
                 		if (mAuxBatt != null) {
@@ -285,6 +309,34 @@ public class HvBatteryVoltageActivity extends Activity {
                 }
             }
         }
+
+		private void checkVoltageDiscrepancies() {
+			float minVoltageValue = 16; // Nominal voltage of a cell pair should be 14.4V with no load.
+			float maxVoltageValue = 0;
+			for (float val : cellPairs) {
+				if (val < minVoltageValue)
+					minVoltageValue = val;
+				if (val > maxVoltageValue)
+					maxVoltageValue = val;
+			}
+			float discrepancy = maxVoltageValue - minVoltageValue;
+			if (discrepancy > MAX_VOLTAGE_DISCREPANCY) {
+				if (alertVoltageDiscrepancy == null || !alertVoltageDiscrepancy.isShowing()) {
+					alertBuilder.setMessage("WARNING: Voltage difference of "
+	                        +discrepancy+ "V detected!!!")
+					       .setCancelable(false)
+					       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+					           public void onClick(DialogInterface dialog, int id) {
+					                dialog.cancel();
+					                alertVoltageDiscrepancy = null;
+					                // TODO: Once acknowledged, we should wait some time before popping up again!
+					           }
+					       });
+					alertVoltageDiscrepancy = alertBuilder.create();
+					alertVoltageDiscrepancy.show();
+				}
+			}
+		}
     };
     
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
