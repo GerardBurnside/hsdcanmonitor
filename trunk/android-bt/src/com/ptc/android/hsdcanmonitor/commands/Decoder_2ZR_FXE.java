@@ -86,8 +86,13 @@ public class Decoder_2ZR_FXE extends GenericResponseDecoder {
 				// Offs=36 Amp	Amp	=(Tb[Offs + 1] * 256 + Tb[Offs + 2] - 128 * 256 ) /100				
 				us1 = getNextUnsignedShort(); // first part of the 2-byte short
 				ushort = us1*256 + getNextUnsignedShort() - bigShort;
-				resDouble = ushort / 100.0;
-				res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_AMP,Double.toString(resDouble)));
+				resDouble = Math.round(ushort / 10.0); // Keep only one decimal
+				resDouble /= 10; // Put back the one and only decimal.
+				if (Math.abs(resDouble) > 3) { // Let's ignore all decimal values:
+					res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_AMP,Integer.toString((int)Math.round(resDouble))));
+				} else {	// Do not round up for smaller values
+					res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_AMP,Double.toString(resDouble)));
+				}
 			}
 			else if ("21013C49".equals(cmd._command)) {
 				// Initial offset: First byte after command id:
