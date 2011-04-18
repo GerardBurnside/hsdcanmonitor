@@ -314,6 +314,8 @@ public class HvBatteryVoltageActivity extends Activity {
 			float minVoltageValue = 16; // Nominal voltage of a cell pair should be 14.4V with no load.
 			float maxVoltageValue = 0;
 			for (float val : cellPairs) {
+				if (val == 0) // Ignore empty values!
+					continue;
 				if (val < minVoltageValue)
 					minVoltageValue = val;
 				if (val > maxVoltageValue)
