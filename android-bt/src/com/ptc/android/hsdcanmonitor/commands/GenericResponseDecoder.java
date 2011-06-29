@@ -33,6 +33,11 @@ public abstract class GenericResponseDecoder {
 	public static final int COOLANT_TEMP = 16;
 	public static final int HV_BATT_DISCHARGE_MAX = 17; // kW
 	public static final int HV_BATT_CHARGE_MAX = 18; // kW
+	public static final int VEHICLE_LOAD = 19; 	//	%	 
+	public static final int FUEL_TANK = 20; 	//	L
+	public static final int INVERTER_TEMP_MGx = 21;	//	°C (max value of MG1 or MG2)
+	public static final int DC_CNV_TEMP = 22;	//	°C (Upper value)
+
     /* TODO: Declare Static finals for these:
 	Batt_ref_tmp	Batt resfresh Temp (°C)	 
 	batt_TB1	Batt Tmp1	 
@@ -41,15 +46,12 @@ public abstract class GenericResponseDecoder {
 	HVH	HighVoltage	 
 	Cnv_Temp	°C	 
 	Cool_Temp	°C	 
-	Invt_Temp_MG2	°C	 
-	Invt_Temp_MG1	°C	 
 	Inj_muL	 	 
 	FF_mLS	FuelFlow mL/S	 
 	FF_LH	FuelFlow (calc) L/H	 
 	Cons_kM_L	 	 
 	Cons_L_100	 	 
 	CalcLoad	%	 
-	VehLoad	%	 
 	MAF	G/S	 
 	MAP	kPa	 
 	Air_Intake_Temp	°C	 

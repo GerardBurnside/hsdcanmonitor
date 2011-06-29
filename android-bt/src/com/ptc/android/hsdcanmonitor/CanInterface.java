@@ -139,7 +139,7 @@ public class CanInterface implements Runnable {
 				////////////////// DEBUG ONLY ////////////////////
 				if (_fakeDebugResponses) { // ONLY FOR EARLY DEBUGGING:
 					final String debugStr = //"Fake response!>"
-						"7EA032E610100000000\n7E82114655061530000\n7E822000000002A7B2A\n7E823FF6712A7253729\n7E8243C000000008049\n7E825BB8A7F80100000\n7E826000008510A0000\nOK\n>";
+						"7EA032E610100055000\n7E82114655061530000\n7E822000000002A7B2A\n7E823FF6712A7253729\n7E8243C000000008049\n7E825BB8A1A80100000\n7E826000008510A0000\nOK\n>";
 					int indexDebug=0;
 					// timeout if random is true four times in a row!
 					if (_myRand.nextBoolean() && _myRand.nextBoolean()

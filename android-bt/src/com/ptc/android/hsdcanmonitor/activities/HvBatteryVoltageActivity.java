@@ -33,7 +33,9 @@ public class HvBatteryVoltageActivity extends Activity {
     private static final String TAG = "HsdCanMonitor.HV";
     private static final boolean D = CoreEngine.D;
 
-    private static final float MAX_VOLTAGE_DISCREPANCY = 0.3f;
+    private static final float MAX_VOLTAGE_DISCREPANCY = 0.25f; // Should be configurable!
+    private static final int MAX_CONSECUTIVE_DISCREPANCIES = 5; // Until I figure out a better way ;-)
+    private int discrepancies_count = 0;
     private static volatile boolean _visible = false;
     // Layout Views
     private TextView mGroup01;
@@ -323,20 +325,27 @@ public class HvBatteryVoltageActivity extends Activity {
 			}
 			float discrepancy = maxVoltageValue - minVoltageValue;
 			if (discrepancy > MAX_VOLTAGE_DISCREPANCY) {
-				if (alertVoltageDiscrepancy == null || !alertVoltageDiscrepancy.isShowing()) {
-					alertBuilder.setMessage("WARNING: Voltage difference of "
-	                        +discrepancy+ "V detected!!!")
-					       .setCancelable(false)
-					       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-					           public void onClick(DialogInterface dialog, int id) {
-					                dialog.cancel();
-					                alertVoltageDiscrepancy = null;
-					                // TODO: Once acknowledged, we should wait some time before popping up again!
-					           }
-					       });
-					alertVoltageDiscrepancy = alertBuilder.create();
-					alertVoltageDiscrepancy.show();
+				if (++discrepancies_count > MAX_CONSECUTIVE_DISCREPANCIES) {
+					if (alertVoltageDiscrepancy == null || !alertVoltageDiscrepancy.isShowing()) {
+						alertBuilder.setMessage("WARNING: Voltage difference of "
+		                        +discrepancy+ "V detected for "+MAX_CONSECUTIVE_DISCREPANCIES+" measures!!!")
+						       .setCancelable(false)
+						       .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+						           public void onClick(DialogInterface dialog, int id) {
+						                dialog.cancel();
+						                alertVoltageDiscrepancy = null;
+						                // Reset the counter
+						                discrepancies_count = 0;
+						           }
+						       });
+						alertVoltageDiscrepancy = alertBuilder.create();
+						alertVoltageDiscrepancy.show();
+					}
 				}
+				// else: ignore for now.
+			}
+			else { // Reset the counter
+				discrepancies_count = 0;
 			}
 		}
     };

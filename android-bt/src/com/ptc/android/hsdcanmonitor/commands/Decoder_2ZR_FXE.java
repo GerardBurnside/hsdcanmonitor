@@ -30,8 +30,84 @@ public class Decoder_2ZR_FXE extends GenericResponseDecoder {
 			int ushort;
 			double resDouble;
 			res = new ArrayList<Pair<Integer, String>>();
-			// TODO, use command names for better readability?
-			if ("2161626768748A".equals(cmd._command)) {
+			// TODO: Treat each byte command separately in sequence, increasing the offset accordingly
+			// (instead of having a whole block of commands). This requires remembering which ECU was addressed.
+			/*if ("210170718A".equals(cmd._command)) { // Shorter command with only the info displayed on the landscape UI.
+				// SOC	%	Tb[Offs + 22]/255
+				_formattedBytesResponse.position(24);
+				us1 = getNextUnsignedShort();
+				resDouble = us1 / 2.55;
+				ushort = (int) resDouble;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.STATE_OF_CHARGE,Integer.toString(ushort)));
+
+				// Offs=25 Inverter Temp-(MG1)	°C	=(Tb[Offs + 1] - 40)
+				_formattedBytesResponse.position(26);
+				ushort = getNextUnsignedShort() - 40;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.INVERTER_TEMP_MG1,Integer.toString(ushort)));
+
+				// Offset=30 Inverter Temp-(MG2)	°C	=(Tb[Offs + 1] - 40) 
+				_formattedBytesResponse.position(31);
+				ushort = getNextUnsignedShort() - 40;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.INVERTER_TEMP_MG2,Integer.toString(ushort)));
+
+				// Offs=35 Amp	Amp	=(Tb[Offs + 1] * 256 + Tb[Offs + 2] - 128 * 256 ) /100				
+				_formattedBytesResponse.position(36);
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = us1*256 + getNextUnsignedShort() - bigShort;
+				resDouble = Math.round(ushort / 10.0); // Keep only one decimal
+				resDouble /= 10; // Put back the one and only decimal.
+				if (Math.abs(resDouble) > 3) { // Let's ignore all decimal values:
+					res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_AMP,Integer.toString((int)Math.round(resDouble))));
+				} else {	// Do not round up for smaller values
+					res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_AMP,Double.toString(resDouble)));
+				}
+			}
+			else */ 
+			if ("21013C49".equals(cmd._command)) {
+				// Initial offset: First byte after command id:
+				_formattedBytesResponse.position(3);
+				// Offs=2	calc_load	%	=Tb[Offs + 1] / 2,55
+				getNextUnsignedShort();
+				// ignored:
+				getNextUnsignedShort();
+				// vehicule_load	%	=Tb[Offs + 3] / 2,55
+				resDouble = getNextUnsignedShort() / 2.55;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.VEHICLE_LOAD,Integer.toString((int)Math.round(resDouble))));
+				// MAF	G/S	=(Tb[Offs + 4]*256 + Tb[Offs + 5]) / 100
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = us1*256 + getNextUnsignedShort() - bigShort;
+				resDouble = ushort / 100.0;
+				// MAP	kPa	=Tb[Offs + 6]
+				getNextUnsignedShort();
+				// Air_Intake_Temp	°C	=Tb[Offs + 7] - 40
+				getNextUnsignedShort();
+				// Atm_Press	kPa	=Tb[Offs + 8]
+				getNextUnsignedShort();
+				// ICE_Temp	°C	=Tb[Offs + 9] - 40
+				ushort = getNextUnsignedShort() - 40;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.ICE_TEMP,Integer.toString(ushort)));
+				// ICE_RPM		=(Tb[Offs + 10] * 256 + Tb[Offs + 11] ) / 4
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = (us1*256 + getNextUnsignedShort())/4;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.ICE_RPM,Integer.toString(ushort)));
+				// Speed 	kM/H	=Tb[Offs + 12]
+				getNextUnsignedShort();
+
+				_formattedBytesResponse.position(29);
+				// Offs=28	Inj_µL	µL	=Tb[Offs + 1] * 256 + Tb[Offs + 2]
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = (us1*256 + getNextUnsignedShort());
+				// inj_µS	µS	=Tb[Offs + 3] * 256 + Tb[Offs + 4]	
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = (us1*256 + getNextUnsignedShort());
+
+				_formattedBytesResponse.position(38);
+				// Offs=34	ICE_Torque	NM	=(Tb[Offs + 4]*256 + Tb[Offs + 5]) - 128*256
+				us1 = getNextUnsignedShort(); // first part of the 2-byte short
+				ushort = (us1*256 + getNextUnsignedShort()) - bigShort;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.ICE_TORQUE,Integer.toString(ushort)));
+			}
+			else if ("2161626768748A".equals(cmd._command)) {
 				// Initial offset: First byte after command id, then 2 ignored bytes:
 				_formattedBytesResponse.position(5);
 				// Offs=2	MG1_Temp	°C	=Tb[Offs + 3] - 40
@@ -69,73 +145,44 @@ public class Decoder_2ZR_FXE extends GenericResponseDecoder {
 				_formattedBytesResponse.position(27);
 				// Offs=26	DC/DC Cnv Temp (Upper)	°C	Tb[Offs + 1] - 40
 				ushort = getNextUnsignedShort() - 40;
-				//res.add(new Pair<Integer, String>(GenericResponseDecoder.MG2_TEMP,Integer.toString(ushort)));
 				// DC/DC Cnv Temp (Lower)	°C	Tb[Offs + 2] - 4
-				ushort = getNextUnsignedShort() - 40;
-				//res.add(new Pair<Integer, String>(GenericResponseDecoder.MG2_TEMP,Integer.toString(ushort)));
+				us1 = getNextUnsignedShort() - 40;
+				// Send the max temp to the UI:
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.DC_CNV_TEMP,Integer.toString(Math.max(us1, ushort))));
+
 				// HVL	Volt	=(Tb[Offs + 6] * 256 + Tb[Offs + 7] ) / 2
+				_formattedBytesResponse.position(32);
 				us1 = getNextUnsignedShort(); // first part of the 2-byte short
-				ushort = us1*256 + getNextUnsignedShort() - bigShort;
+				Double battVolt = (us1*256 + getNextUnsignedShort())/2.0;
 				//res.add(new Pair<Integer, String>(GenericResponseDecoder.MG2_RPM,Integer.toString(ushort)));
 				// HVH	Volt	=(Tb[Offs + 8] * 256 + Tb[Offs + 9] ) / 2
 				us1 = getNextUnsignedShort(); // first part of the 2-byte short
-				ushort = us1*256 + getNextUnsignedShort() - bigShort;
+				ushort = (us1*256 + getNextUnsignedShort())/2;
 				//res.add(new Pair<Integer, String>(GenericResponseDecoder.MG2_RPM,Integer.toString(ushort)));
 
 				_formattedBytesResponse.position(37);
 				// Offs=36 Amp	Amp	=(Tb[Offs + 1] * 256 + Tb[Offs + 2] - 128 * 256 ) /100				
 				us1 = getNextUnsignedShort(); // first part of the 2-byte short
 				ushort = us1*256 + getNextUnsignedShort() - bigShort;
+				/*
 				resDouble = Math.round(ushort / 10.0); // Keep only one decimal
 				resDouble /= 10; // Put back the one and only decimal.
 				if (Math.abs(resDouble) > 3) { // Let's ignore all decimal values:
 					res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_AMP,Integer.toString((int)Math.round(resDouble))));
 				} else {	// Do not round up for smaller values
 					res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_AMP,Double.toString(resDouble)));
+				}*/
+				// Now calculate battery power (P=UI) in kW:
+				resDouble = ushort / 100.0; // (in Amps)
+				resDouble *= battVolt; // P=UI in W
+				// Round up to one decimal while converting to kW:
+				resDouble = Math.round(resDouble / 100.0);
+				resDouble /= 10;
+				if (Math.abs(resDouble) > 5) { // Let's ignore all decimal values:
+					res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_KW,Integer.toString((int)Math.round(resDouble))));
+				} else {	// Do not round up for smaller values
+					res.add(new Pair<Integer, String>(GenericResponseDecoder.BATT_KW,Double.toString(resDouble)));
 				}
-			}
-			else if ("21013C49".equals(cmd._command)) {
-				// Initial offset: First byte after command id:
-				_formattedBytesResponse.position(3);
-				// Offs=2	calc_load	%	=Tb[Offs + 1] / 2,55
-				getNextUnsignedShort();
-				// ignored:
-				getNextUnsignedShort();
-				// vehicule_load	%	=Tb[Offs + 3] / 2,55
-				getNextUnsignedShort();
-				// MAF	G/S	=(Tb[Offs + 4]*256 + Tb[Offs + 5]) / 100
-				us1 = getNextUnsignedShort(); // first part of the 2-byte short
-				ushort = us1*256 + getNextUnsignedShort() - bigShort;
-				resDouble = ushort / 100.0;
-				// MAP	kPa	=Tb[Offs + 6]
-				getNextUnsignedShort();
-				// Air_Intake_Temp	°C	=Tb[Offs + 7] - 40
-				getNextUnsignedShort();
-				// Atm_Press	kPa	=Tb[Offs + 8]
-				getNextUnsignedShort();
-				// ICE_Temp	°C	=Tb[Offs + 9] - 40
-				ushort = getNextUnsignedShort() - 40;
-				res.add(new Pair<Integer, String>(GenericResponseDecoder.ICE_TEMP,Integer.toString(ushort)));
-				// ICE_RPM		=(Tb[Offs + 10] * 256 + Tb[Offs + 11] ) / 4
-				us1 = getNextUnsignedShort(); // first part of the 2-byte short
-				ushort = (us1*256 + getNextUnsignedShort())/4;
-				res.add(new Pair<Integer, String>(GenericResponseDecoder.ICE_RPM,Integer.toString(ushort)));
-				// Speed 	kM/H	=Tb[Offs + 12]
-				getNextUnsignedShort();
-
-				_formattedBytesResponse.position(29);
-				// Offs=28	Inj_µL	µL	=Tb[Offs + 1] * 256 + Tb[Offs + 2]
-				us1 = getNextUnsignedShort(); // first part of the 2-byte short
-				ushort = (us1*256 + getNextUnsignedShort());
-				// inj_µS	µS	=Tb[Offs + 3] * 256 + Tb[Offs + 4]	
-				us1 = getNextUnsignedShort(); // first part of the 2-byte short
-				ushort = (us1*256 + getNextUnsignedShort());
-
-				_formattedBytesResponse.position(38);
-				// Offs=34	ICE_Torque	NM	=(Tb[Offs + 4]*256 + Tb[Offs + 5]) - 128*256
-				us1 = getNextUnsignedShort(); // first part of the 2-byte short
-				ushort = (us1*256 + getNextUnsignedShort()) - bigShort;
-				res.add(new Pair<Integer, String>(GenericResponseDecoder.ICE_TORQUE,Integer.toString(ushort)));
 			}
 			else if ("210170718798".equals(cmd._command)) {
 				// Initial offset: First byte after command id:
@@ -154,6 +201,22 @@ public class Decoder_2ZR_FXE extends GenericResponseDecoder {
 				resDouble = us1 / 2.55;
 				ushort = (int) resDouble;
 				res.add(new Pair<Integer, String>(GenericResponseDecoder.STATE_OF_CHARGE,Integer.toString(ushort)));
+
+				// Offs=25 Inverter Temp-(MG1)	°C	=(Tb[Offs + 1] - 40)
+				_formattedBytesResponse.position(26);
+				us1 = getNextUnsignedShort() - 40;
+				// Offset=30 Inverter Temp-(MG2)	°C	=(Tb[Offs + 1] - 40) 
+				_formattedBytesResponse.position(31);
+				ushort = getNextUnsignedShort() - 40;
+				// Send only the max value between MG1 and MG2:
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.INVERTER_TEMP_MGx,Integer.toString(Math.max(us1, ushort))));
+			}
+			else if ("2129".equals(cmd._command)) {
+				// Offs=1	Fuel_tank	L	=Tb[Offs + 1] / 2
+				_formattedBytesResponse.position(2);
+				us1 = getNextUnsignedShort();
+				resDouble = us1 / 2.0;
+				res.add(new Pair<Integer, String>(GenericResponseDecoder.FUEL_TANK,Double.toString(resDouble)));
 			}
 			else if ("2181".equals(cmd._command)) { // HV Battery Voltage:
 				// Initial offset: First byte after command id:
@@ -215,6 +278,7 @@ public class Decoder_2ZR_FXE extends GenericResponseDecoder {
 				resDouble = ushort / 1000.0;
 				res.add(new Pair<Integer, String>(GenericResponseDecoder.HV_BATT_VOLT_14,Double.toString(resDouble)));
 			}
+
 		}
 		// Might be null:
 		return res;

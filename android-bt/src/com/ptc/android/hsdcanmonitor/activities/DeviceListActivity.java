@@ -28,6 +28,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -84,6 +85,22 @@ public class DeviceListActivity extends Activity {
     		return;
     	}
 
+        // Let's check whether we have a preferred device to connect to:
+		SharedPreferences settings = getSharedPreferences(CoreEngine.PREFS_NAME, MODE_PRIVATE);
+		String deviceAddr = settings.getString(CoreEngine.DEVICE_ADDRESS, null);
+		if (deviceAddr != null) {
+			// Try to connect to last successful device:
+            // Create the result Intent and include the MAC address
+            Intent intent = new Intent();
+            intent.putExtra(EXTRA_DEVICE_ADDRESS, deviceAddr);
+
+            // Set result and finish this Activity
+            setResult(Activity.RESULT_OK, intent);
+            finish();
+			return;
+		}
+
+
         // Initialize the button to perform device discovery
         Button scanButton = (Button) findViewById(R.id.button_scan);
         scanButton.setOnClickListener(new OnClickListener() {
@@ -131,7 +148,8 @@ public class DeviceListActivity extends Activity {
         super.onStart();
         if(D) Log.e(TAG, "- ON START DeviceListActivity -");
         if (CoreEngine.Exiting) {
-    		finish();
+        	setResult(Activity.RESULT_CANCELED);
+        	finish();
     		return;
     	}
     }
