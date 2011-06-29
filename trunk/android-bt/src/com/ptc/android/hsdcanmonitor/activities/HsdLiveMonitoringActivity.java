@@ -12,6 +12,7 @@ import com.ptc.android.hsdcanmonitor.commands.GenericResponseDecoder;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -31,14 +32,19 @@ public class HsdLiveMonitoringActivity extends Activity {
     private static final String TAG = "HsdCanMonitor.UI";
     private static final boolean D = CoreEngine.D;
 
-    private TextView mBattAmp; 
+    private TextView mBattKW; 
     private TextView mBattSOC; 
     private TextView mIceTemp;
     private TextView mIceTorque;
     private TextView mMG1RPM;
     private TextView mMG2RPM;
     private TextView mIceRPM;
+    //private TextView mVehicleLoad;
+    private TextView mInverterTempMGx;
+    private TextView mDC_Cnv_Temp;
+    private TextView mFuelTank;
     private static volatile boolean _visible = false;
+    private int MAX_UNSUCCESSFUL_ATTEMPTS_FROM_SETTINGS = 15;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -54,14 +60,22 @@ public class HsdLiveMonitoringActivity extends Activity {
         // Set up the window layout
         setContentView(R.layout.main);
         
+        // TODO: Only ask the commands for items that are displayed:
+        // This requires re-writing each command and deciding how to group them
+        // for best efficiency...
+        
         // Any one of those may be null depending on the layout:
-        mBattAmp = (TextView) findViewById(R.id.hv_batt_amp);
+        mBattKW = (TextView) findViewById(R.id.hv_batt_kw);
         mBattSOC = (TextView) findViewById(R.id.hv_batt_soc);
         mIceRPM = (TextView) findViewById(R.id.ice_rpm);
         mIceTemp = (TextView) findViewById(R.id.ice_temp);
         mMG1RPM = (TextView) findViewById(R.id.mg1_rpm);
         mMG2RPM = (TextView) findViewById(R.id.mg2_rpm);
         mIceTorque = (TextView) findViewById(R.id.ice_torque);
+        //mVehicleLoad = (TextView) findViewById(R.id.vehicle_load);
+        mInverterTempMGx = (TextView) findViewById(R.id.inverter_temp_mgx);
+        mDC_Cnv_Temp = (TextView) findViewById(R.id.dc_cnv_temp);
+        mFuelTank = (TextView) findViewById(R.id.fuel_tank);
 
         CoreEngine.setCurrentHandler(mHandler);
         CoreEngine.startInit();
@@ -87,20 +101,26 @@ public class HsdLiveMonitoringActivity extends Activity {
         	}
         }
         else {
-        	// Let's wait briefly then launch the BT discovery if needed:
-        	new Thread() {
-        		public void run() {
-        			try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						// Ignore
-						if (D) Log.e(TAG, "Interrupted while waiting before BT discovery...");
-					}
-                	if (_visible && !CanInterface.getInstance().isConnecting())
-                		CoreEngine.scanDevices();
-        		}
-        	}.start();
+        	deferredScanDevices();
         }
+    }
+    
+    private void deferredScanDevices() {
+    	// Let's wait briefly then launch the BT discovery if needed:
+    	new Thread() {
+    		public void run() {
+    			try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// Ignore
+					if (D) Log.e(TAG, "Interrupted while waiting before BT discovery...");
+				}
+            	if (_visible && !CanInterface.getInstance().isConnecting()) {
+            		CoreEngine.scanDevices();
+            	}
+            		
+    		}
+    	}.start();
     }
 
     @Override
@@ -143,7 +163,10 @@ public class HsdLiveMonitoringActivity extends Activity {
                	case CoreEngine.STATE_CONNECT_FAILED:
                     Toast.makeText(getApplicationContext(), R.string.title_connect_failed,
                             Toast.LENGTH_SHORT).show();
-                    CoreEngine.scanDevices();
+                    if (--MAX_UNSUCCESSFUL_ATTEMPTS_FROM_SETTINGS > 0) {
+                    	deferredScanDevices();
+                    }
+                    // else: let the user press the menu himself (TODO: print a Toast?)
                 break;
                	case CoreEngine.STATE_CONNECTION_LOST:
                     Toast.makeText(getApplicationContext(), R.string.title_connection_lost,
@@ -160,6 +183,8 @@ public class HsdLiveMonitoringActivity extends Activity {
                 String connectedDeviceName = msg.getData().getString(CoreEngine.DEVICE_NAME);
                 Toast.makeText(getApplicationContext(), "Connected to "
                                + connectedDeviceName, Toast.LENGTH_SHORT).show();
+                // Remember the address of the last successful connection:
+                setPreferredDeviceAddress(msg.getData().getString(CoreEngine.DEVICE_ADDRESS));
                 break;
             case CoreEngine.MESSAGE_TOAST:
                 Toast.makeText(getApplicationContext(), msg.getData().getInt(CoreEngine.TOAST_MSG_ID),
@@ -175,6 +200,10 @@ public class HsdLiveMonitoringActivity extends Activity {
                 Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableIntent, CoreEngine.REQUEST_ENABLE_BT);
                 break;
+            case CoreEngine.MESSAGE_SCAN_DEVICES_MANUAL:
+                // Reset the device stored in memory to avoid infinite loop with stored value:
+               	setPreferredDeviceAddress(null);
+               	// no break: fall through:
             case CoreEngine.MESSAGE_SCAN_DEVICES:
                 Intent serverIntent = new Intent(getApplicationContext(), DeviceListActivity.class);
                 startActivityForResult(serverIntent, CoreEngine.REQUEST_CONNECT_DEVICE);
@@ -197,14 +226,14 @@ public class HsdLiveMonitoringActivity extends Activity {
                 ArrayList<Pair<Integer, String>> refreshValues = (ArrayList<Pair<Integer, String>>) msg.getData().get(CoreEngine.UI_UPDATE_ITEM);
                 for (Pair<Integer, String> item : refreshValues) {
                 	switch(item.first) {
-                	case GenericResponseDecoder.BATT_AMP:
-                		if (mBattAmp != null) {
-                			mBattAmp.setText(item.second);
+                	case GenericResponseDecoder.BATT_KW:
+                		if (mBattKW != null) {
+                			mBattKW.setText(item.second);
                 			if (item.second.charAt(0) == '-') {
                 				// Cool, we're getting energy back
-                				mBattAmp.setTextColor(Color.GREEN);
+                				mBattKW.setTextColor(Color.GREEN);
                 			}
-                			else mBattAmp.setTextColor(Color.LTGRAY);
+                			else mBattKW.setTextColor(Color.LTGRAY);
                 		}                			
                 		break;
                 	case GenericResponseDecoder.STATE_OF_CHARGE:
@@ -216,18 +245,19 @@ public class HsdLiveMonitoringActivity extends Activity {
                 		if (mIceTemp != null) {
                 			mIceTemp.setText(item.second);
                 			final String IceWontTurnOff = "40";
-                			final String NeedIdlingCheckCeremony = "70";
-                   			final String howHotIsTooHot = "100";
+                			final String NeedIdlingCheckCeremony = "71";
+                   			final String howHotIsTooHot = "98";
                    			if ((item.second.charAt(0) == '-')
-                   					|| (IceWontTurnOff.length() >= item.second.length()) 
-                				&& IceWontTurnOff.compareTo(item.second) > 0) {
+                   					|| (IceWontTurnOff.length() >= item.second.length() 
+                				&& (IceWontTurnOff.compareTo(item.second)) > 0)) {
                 				mIceTemp.setTextColor(Color.BLUE);		
                 			}
                 			else if (NeedIdlingCheckCeremony.length() == item.second.length() 
                     				&& NeedIdlingCheckCeremony.compareTo(item.second) > 0) {
                 				mIceTemp.setTextColor(Color.GRAY);
                 			}
-                			else if (howHotIsTooHot.length() > item.second.length()) {
+                			else if (howHotIsTooHot.length() >= item.second.length()
+                						&& howHotIsTooHot.compareTo(item.second) > 0) {
                 				mIceTemp.setTextColor(Color.GREEN);
                 			}
                 			else mIceTemp.setTextColor(Color.RED);
@@ -236,20 +266,45 @@ public class HsdLiveMonitoringActivity extends Activity {
                 	case GenericResponseDecoder.ICE_RPM:
                 		if (mIceRPM != null) {
                 			mIceRPM.setText(item.second);
-                			// Lowest rpm I've seen that will cause fuel injection if I go to N
-                			final String noFuelRPM = "911";
+                			// Lowest rpm I've seen that can still cause fuel injection when switching to N
+                			final String noFuelRPM = "900";
+                			final String lessEfficientRPM = "3300";
                 			if (noFuelRPM.length() >= item.second.length() 
-                				&& noFuelRPM.compareTo(item.second) > 0) {
-                				mIceRPM.setTextColor(Color.DKGRAY);                				
+                					&& noFuelRPM.compareTo(item.second) > 0) {
+                				mIceRPM.setTextColor(Color.DKGRAY);
+                			}
+                			else if (lessEfficientRPM.length() > item.second.length() 
+                    				|| lessEfficientRPM.compareTo(item.second) > 0) {
+                				mIceRPM.setTextColor(Color.WHITE);
                 			}
                 			else {
-                				mIceRPM.setTextColor(Color.WHITE);
+                				mIceRPM.setTextColor(Color.RED);
                 			}
                 		}
                 		break;
                 	case GenericResponseDecoder.ICE_TORQUE:
-                		if (mIceTorque != null)
-                			mIceTorque.setText(item.second);
+                		if (mIceTorque != null) {
+                			final int length = item.second.length();
+                			if (length > 3) // Probably a mistake as Torque never exceeds 150 NM
+                				break; // Ignore.
+                			// Else:
+                		    mIceTorque.setText(item.second);
+                			// Values where torque is supposedly more efficient:
+                			final String torqueTooLow = "72";
+                			final String torqueTooHigh = "115";
+                			if ((item.second.charAt(0) == '-')
+                   					|| (torqueTooLow.length() >= length
+                    				&& torqueTooLow.compareTo(item.second) > 0)) {
+                				mIceTorque.setTextColor(Color.GRAY);
+                    		}
+                    		else if (torqueTooHigh.length() > length 
+                        			|| torqueTooHigh.compareTo(item.second) > 0) {
+                    			mIceTorque.setTextColor(Color.GREEN);
+                    		}
+                    		else {
+                    			mIceTorque.setTextColor(Color.RED);
+                    		}
+                		}
                 		break;
                 	case GenericResponseDecoder.MG1_RPM:
                 		if (mMG1RPM != null)
@@ -259,12 +314,34 @@ public class HsdLiveMonitoringActivity extends Activity {
                 		if (mMG2RPM != null)
                 			mMG2RPM.setText(item.second);
                 		break;
-                	}
+	            	/*case GenericResponseDecoder.VEHICLE_LOAD:
+	            		if (mVehicleLoad != null)
+	            			mVehicleLoad.setText(item.second);
+	            		break;*/
+                	case GenericResponseDecoder.INVERTER_TEMP_MGx:
+                		if (mInverterTempMGx != null)
+                			mInverterTempMGx.setText(item.second);
+                		break;
+                	case GenericResponseDecoder.DC_CNV_TEMP:
+                		if (mDC_Cnv_Temp != null)
+                			mDC_Cnv_Temp.setText(item.second);
+                		break;
+                	case GenericResponseDecoder.FUEL_TANK:
+                		if (mFuelTank != null)
+                			mFuelTank.setText(item.second);
+                		break;
+	            	}
                 }
                 break;
             }
         }
     };
+    
+    public void setPreferredDeviceAddress(String addr) {
+		SharedPreferences.Editor settings = getSharedPreferences(CoreEngine.PREFS_NAME, MODE_PRIVATE).edit();
+		settings.putString(CoreEngine.DEVICE_ADDRESS, addr);
+		settings.commit();
+    }
     
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
     	CoreEngine.onActivityResult(requestCode, resultCode, data);

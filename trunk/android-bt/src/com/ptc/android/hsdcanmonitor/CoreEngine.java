@@ -42,7 +42,7 @@ public final class CoreEngine {
     public static final int MESSAGE_STATE_CHANGE = 1;
     public static final int MESSAGE_REQUEST_BT = 2;
     public static final int MESSAGE_FINISH = 3;
-    public static final int MESSAGE_SCAN_DEVICES = 4;
+    public static final int MESSAGE_SCAN_DEVICES_MANUAL = 4; // user action in menu !
     public static final int MESSAGE_DEVICE_NAME = 5;
     public static final int MESSAGE_TOAST = 6;
     public static final int MESSAGE_COMMAND_RESPONSE = 7;
@@ -50,9 +50,11 @@ public final class CoreEngine {
     public static final int MESSAGE_SWITCH_UI = 9;
     public static final int MESSAGE_SHOW_HV_DETAIL = 10;
     public static final int MESSAGE_TOAST_WITH_PARAM = 11;
+    public static final int MESSAGE_SCAN_DEVICES = 12; // automatic at init or upon disconnection...
     // Message keys:
     public static final String TOAST_MSG_ID = "toast_msg_id";
     public static final String TOAST_PARAM = "param";
+    public static final String DEVICE_ADDRESS = "dev_address";
     public static final String DEVICE_NAME = "dev_name";
     public static final String RESPONSE = "response";
     public static final String DURATION = "duration";
@@ -61,6 +63,8 @@ public final class CoreEngine {
     // Local Bluetooth adapter
     private static BluetoothAdapter _bluetoothAdapter = null;
     private static volatile boolean _scanningDevices = false;
+    // Preference settings
+    public static final String PREFS_NAME = "HSDCanMonitorPrefs";
 
     // Parent Activity:
     protected static Handler _parentHandler;
@@ -102,12 +106,13 @@ public final class CoreEngine {
 	        setState(STATE_NONE);
 			// Bluetooth is now up and running:
 			scanDevices(); // TODO connect to last known device instead.
+			
 			// TODO Should try connecting to the previously connected device right away !
 		}
 	}
 	
 	public static synchronized void scanDevices() {
-		if ((!_scanningDevices) && (!CanInterface.getInstance().isConnecting())) {
+		if ((!_scanningDevices) && (!CanInterface.getInstance().isConnecting()) && !Exiting) {
 			_scanningDevices = true;
 			Message msg = _parentHandler.obtainMessage(MESSAGE_SCAN_DEVICES);
 	        _parentHandler.sendMessage(msg);
@@ -128,6 +133,7 @@ public final class CoreEngine {
         	    	Message msg = _parentHandler.obtainMessage(MESSAGE_DEVICE_NAME);
         	        Bundle bundle = new Bundle();
         	        bundle.putString(DEVICE_NAME, device.getName());
+        	        bundle.putString(DEVICE_ADDRESS, address);
         	        msg.setData(bundle);
         	    	_parentHandler.sendMessage(msg);
 
@@ -326,7 +332,7 @@ public final class CoreEngine {
             // Launch the DeviceListActivity to see devices and do scan
         	// DO not call scanDevices() because we're bypassing checks!
 			_scanningDevices = true;
-			msg = _parentHandler.obtainMessage(MESSAGE_SCAN_DEVICES);
+			msg = _parentHandler.obtainMessage(MESSAGE_SCAN_DEVICES_MANUAL);
 	        _parentHandler.sendMessage(msg);
             return true;
         case R.id.reverse_beep_remove:
@@ -383,7 +389,7 @@ public final class CoreEngine {
 	    		@Override
 	    		public void run() {
 	    			try {
-						Thread.sleep(3000);
+						Thread.sleep(10000);
 					} catch (InterruptedException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
