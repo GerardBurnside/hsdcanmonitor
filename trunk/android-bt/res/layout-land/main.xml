@@ -40,7 +40,19 @@
 	      	  android:layout_marginRight="20px"
 	      	  android:gravity="top|right"/>
 	      </TableRow>
-	    </TableLayout>  
+	      <TableRow>
+	      	<TextView
+	      	  android:id="@+id/hv_batt_temp"
+	      	  android:text="-99"
+	      	  android:gravity="bottom|left"
+	      	  android:textSize="30px"/>
+	      	<TextView
+	      	  android:text="°C"
+	      	  android:id="@+id/hv_batt_temp_lbl"
+	      	  android:layout_marginRight="20px"
+	      	  android:gravity="top|right"/>
+	      </TableRow>
+	      	    </TableLayout>  
       	<TextView
       	  android:text="0"
       	  android:id="@+id/ice_rpm"
@@ -87,7 +99,7 @@
       	  android:textSize="160px"
       	  android:gravity="bottom|center"/>
       	<TextView
-      	  android:text="NM"
+      	  android:text="kW"
       	  android:id="@+id/ice_torque_lbl"
       	  android:gravity="bottom|left"/>
       	<TableLayout android:orientation="vertical" android:layout_alignParentBottom="true">
